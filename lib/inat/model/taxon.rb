@@ -2,6 +2,7 @@
 require_relative 'model'
 require_relative 'unique'
 require_relative 'photo'
+require_relative 'taxon/conservation_status'
 
 class INat::Model::Taxon < INat::Model::Unique
 
@@ -33,6 +34,7 @@ class INat::Model::Taxon < INat::Model::Unique
   field :ancestors, type: Md::Types::List[INat::Model::Taxon]
 
   field :default_photo, type: INat::Model::Photo
+  field :conservation_status, type: INat::Model::Taxon::ConservationStatus
 
   # TODO: types
   field :ancestry

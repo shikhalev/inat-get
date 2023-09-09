@@ -78,6 +78,7 @@ class INat::Model::Observation < INat::Model::Unique
   field :observed_time_zone
   field :time_zone_offset
   field :sounds
+  field :observation_sounds
   field :map_scale
   field :project_observations
   field :location
