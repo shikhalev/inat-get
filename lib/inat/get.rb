@@ -2,7 +2,7 @@
 
 require_relative "get/version"
 
-module Inat
+module INat
   module Get
     class Error < StandardError; end
     # Your code goes here...
