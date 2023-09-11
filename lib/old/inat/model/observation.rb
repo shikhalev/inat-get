@@ -10,6 +10,12 @@ require_relative 'user'
 require_relative 'identification'
 require_relative 'photo'
 require_relative 'observation/photo'
+require_relative 'annotation'
+require_relative 'comment'
+require_relative 'date_details'
+require_relative 'sound'
+require_relative 'observation/sound'
+require_relative 'project_observation'
 
 class INat::Model::Observation < INat::Model::Unique
 
@@ -63,24 +69,25 @@ class INat::Model::Observation < INat::Model::Unique
   field :observation_photos, type: Md::Types::List[INat::Model::Observation::Photo]
   field :faves, type: Md::Types::List[INat::Model::Vote]
   field :non_owner_ids, type: Md::Types::List[INat::Model::Identification]
+  field :annotations, type: Md::Types::List[INat::Model::Annotation]
+  field :tags, type: Md::Types::List[String]
+  field :comments, type: Md::Types::List[INat::Model::Comment]
+  field :observed_on_details, type: INat::Model::DateDetails
+  field :created_at_details, type: INat::Model::DateDetails
+  field :sounds, type: Md::Types::List[INat::Model::Sound]
+  field :observation_sounds, type: Md::Types::List[INat::Model::Observation::Sound]
+  field :community_taxon, type: INat::Model::Taxon
+  field :project_observations, type: Md::Types::List[INat::Model::ProjectObservation]
+  field :flags, type: Md::Types::List[INat::Model::Flag]
+  field :created_time_zone, type: Symbol
+  field :observed_time_zone, type: Symbol
 
   # TODO: Types
-  field :annotations
-  field :tags
   field :quality_metrics
-  field :flags
   field :ofvs
-  field :comments
   field :uuid
-  field :observed_on_details
-  field :created_at_details
-  field :created_time_zone
-  field :observed_time_zone
   field :time_zone_offset
-  field :sounds
-  field :observation_sounds
   field :map_scale
-  field :project_observations
   field :location
 
 end

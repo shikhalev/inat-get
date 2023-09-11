@@ -3,12 +3,14 @@ require_relative 'model'
 require_relative 'unique'
 require_relative 'user'
 require_relative 'taxon'
+require_relative 'date_details'
 
 class INat::Model::Identification < INat::Model::Unique
 
   field :hidden, type: Md::Types::Bool
   field :disagreement, type: Md::Types::Bool
   field :created_at, type: Time
+  field :created_at_details, type: INat::Model::DateDetails
   field :taxon_id, type: Integer
   field :body, type: String
   field :own_observation, type: Md::Types::Bool
@@ -26,6 +28,5 @@ class INat::Model::Identification < INat::Model::Unique
   field :uuid
   field :taxon_change
   field :moderator_actions
-  field :created_at_details
 
 end

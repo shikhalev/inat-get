@@ -14,8 +14,8 @@ class INat::Model::User < INat::Model::Unique
   field :suspended, type: Md::Types::Bool
   field :name, type: String
   field :name_autocomplete, type: String
-  field :icon, type: String
-  field :icon_url, type: String
+  field :icon, type: URI
+  field :icon_url, type: URI
   field :observations_count, type: Integer
   field :identifications_count, type: Integer
   field :journal_posts_count, type: Integer

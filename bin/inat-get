@@ -2,15 +2,7 @@
 
 require 'json'
 require 'pp'
-require 'inat/get'
-require 'md'
-require 'inat/model/response/observations'
 
-using Md::Types
 
-json = JSON.load_file '/home/ivan/wrk/projects/inat/inat-get/tmp/e1.json'
-
-observations = INat::Model::Response::Observations::from json
-# pp observations.results.select { |o| o.community_taxon_id == 161505 }.map { |o| o.taxon }
 
 puts 'DONE'

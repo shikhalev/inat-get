@@ -1,5 +1,6 @@
-require "date"
-require "time"
+require 'date'
+require 'time'
+require 'uri'
 
 module Md
 
@@ -81,6 +82,19 @@ module Md::Types
 
   end
 
+  refine URI.singleton_class do
+
+    def from value
+      @@escaper ||= URI::Parser::new
+      if value.nil? || value.empty?
+        nil
+      else
+        URI(@@escaper.escape(value))
+      end
+    end
+
+  end
+
   refine Array do
 
     def x_merge! other
@@ -152,7 +166,7 @@ module Md::Types
     end
 
     def from value
-      value.map { |x| @cls.from(x) }
+      value&.map { |x| @cls.from(x) }
     end
 
   end
