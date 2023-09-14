@@ -8,3 +8,7 @@ Only the [public API][api] is used in accordance with [the conditions][cond].
 [inat]: https://www.inaturalist.org/
 [api]: https://api.inaturalist.org/v1/docs/
 [cond]: https://api.inaturalist.org/v1/docs/#terms-of-use
+
+## Current status
+
+Preliminary development stage.
