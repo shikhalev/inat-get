@@ -3,6 +3,14 @@
 require 'json'
 require 'pp'
 
+require 'inat/application'
+require 'inat/logging'
 
+app = Application.init
+
+puts "\n"
+pp app
+
+app.run
 
 puts 'DONE'
