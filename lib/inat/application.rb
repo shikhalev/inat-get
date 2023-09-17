@@ -6,6 +6,8 @@ require 'logger'
 require 'optparse'
 
 require_relative './utils/merge'
+require_relative './api'
+require_relative './task'
 
 class Application
 
@@ -33,7 +35,10 @@ class Application
       },
       threads: {
         enable: true,
-        limit: 3,
+        tasks: 3,
+        query_sleep: 0.1,
+        worker_sleep: 1.0,
+        main_sleep: 3.0,
       },
       config: [],
       output: {
@@ -79,8 +84,9 @@ class Application
   LICENSE = 'GNU General Public License version 3.0 (GPLv3)'
   HOMEPAGE = 'http://github.com/shikhalev/inat-get'
   AUTHOR  = 'Ivan Shikhalev <shikhalev@gmail.com>'
-  USAGE = ''
-  ABOUT = ''
+  # TODO:
+  USAGE = "Usage: $ #{EXE} [options] ‹task[, ...]›"
+  ABOUT = 'INat::Get — A toolset for fetching and processing data from iNaturalist.org.'
 
   private_constant :USAGE, :ABOUT
 
@@ -110,9 +116,13 @@ class Application
         case m
         when *%i[update force reload skip no]
           m
+        when :'force-update'
+          UpdateMode::FORCE
+        when :'force-reload'
+          UpdateMode::RELOAD
         when :default
           UpdateMode::DEFAULT
-        when :no_update
+        when :'no-update'
           UpdateMode::NO_UPDATE
         else
           raise OptionParser::InvalidArgument, "'#{mode}' is not a valid update mode."
@@ -127,33 +137,34 @@ class Application
         end
       end
 
+      o.separator ''
+
       o.on '-h', '--help', 'Show this help and exit.' do
         puts ABOUT
         puts
         puts op.help
-        # exit 0
+        exit 0
       end
 
       o.on '-?', '--usage', 'Show usage info and exit.' do
         puts op.help
-        # exit 0
+        exit 0
       end
 
       o.on '--about', 'Show information about program and exit.' do
         puts ABOUT
-        # exit 0
+        exit 0
       end
 
       o.on '--version', 'Show version information and exit.' do
         puts VERSION
-        # exit 0
+        exit 0
       end
 
       o.separator ''
 
       o.on '-c', '--config FILE', String, 'Add config file over standard ("~/.config/‹appname›.yaml").' do |file|
         @config[:config] << file
-        # TODO: load config
       end
 
       o.separator ''
@@ -171,12 +182,15 @@ class Application
       end
 
       o.on '-l', '--log [FILE]', String, 'Enable logging to file and set log filename.', 'Default is "./‹task_name›.log".' do |file|
-        if file.nil? || file.empty?
-          @config[:log][:file] = true
+        pp [file, file.class]
+        if file == true || file.nil? || file.empty?
+          @config[:log][:file] = :default
+          @config[:log][:enable] = true
         elsif %w[no none null false].include?(file.downcase)
-          @config[:log][:file] = false
+          @config[:log][:enable] = false
         else
           @config[:log][:file] = file
+          @config[:log][:enable] = false
         end
       end
 
@@ -194,8 +208,8 @@ class Application
         @config[:threads][:enable] = false
       end
 
-      o.on '-t', '--threads COUNT', Integer, 'Limit for concurrent threads count.' do |value|
-        @config[:threads][:limit] = value
+      o.on '-t', '--tasks COUNT', Integer, 'Limit for concurrent tasks count.' do |value|
+        @config[:threads][:tasks] = value
       end
 
       o.separator ''
@@ -218,11 +232,16 @@ class Application
         @config[:data][:update] = UpdateMode::SKIP
       end
 
-      o.on '--no-update', 'No update anyway. New datasets will be empty.' do
+      o.on '--no-update', '--offline', 'No update anyway. New datasets will be empty.' do
         @config[:data][:update] = UpdateMode::NO_UPDATE
       end
 
-      o.on '-u', '--update MODE', UpdateMode, 'Rules for update datasets.' do |value|
+      o.on '-u', '--update MODE', UpdateMode, 'Rules for update datasets. Available values:',
+                                              ' - "update" (or "default")',
+                                              ' - "force" (or "force-update")',
+                                              ' - "reload" (or "force-reload")',
+                                              ' - "skip"',
+                                              ' - "no" (or "no-update")' do |value|
         @config[:data][:update] = value
       end
 
@@ -241,29 +260,68 @@ class Application
     end
   end
 
+  private def init_api!
+    @api = API::new @config
+  end
+
+  private def create_task task
+    task = task.to_s
+    if task.start_with?('@')
+      file = task[1..-1]
+      lines = File.readlines(file, chomp: true)
+      lines.map { |l| create_task l }
+    else
+      Task::new task, @config, @api
+    end
+  end
+
+  private def create_tasks!
+    if @rest.empty?
+      raise OptionParser::MissingArgument, "No tasks found."
+    end
+    @tasks = @rest.map { |t| create_task t }.flatten
+  end
+
   def initialize
     setup_defaults!
     load_config!
     parse_command_line!
     load_other_configs!
+    init_api!
+    create_tasks!
   end
 
-  private def start_worker
-  end
-
-  private def start_tasks
-  end
-
-  private def wait_tasks
+  private def run_tasks
+    if @config[:threads][:enable]
+      @pool = []
+      limit = @config[:threads][:tasks]
+      until @tasks.empty? && @pool.empty? do
+        pp [@tasks.size, @pool.size]
+        @pool.filter! { |t| !t.done? }
+        while @pool.size < limit && !@tasks.empty? do
+          task = @tasks.shift
+          if task
+            Thread::start task do |t|
+              t.run
+            end
+            @pool << task
+          end
+        end
+        sleep @config[:threads][:main_sleep]
+      end
+    else
+      @tasks.each do |t|
+        t.run
+      end
+    end
   end
 
   private def stop_worker
+    @api.worker.stop
   end
 
   def run
-    start_worker
-    start_tasks
-    wait_tasks
+    run_tasks
     stop_worker
   end
 
