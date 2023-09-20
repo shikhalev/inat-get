@@ -61,7 +61,8 @@ class API
     end
 
     USER_AGENT = 'INat::Get client'
-    OBSERVATIONS_URL = 'https://api.inaturalist.org/v1/observations'
+    API_URL = 'https://api.inaturalist.org/v1/'
+    OBSERVATIONS_URL = API_URL + 'observations'
     MAX_PER_PAGE = 200
 
     attr_reader :status
@@ -92,7 +93,7 @@ class API
       @worker << self
     end
 
-    private def fetch http, uri
+    protected def fetch http, uri
       rq = Net::HTTP::Get::new uri
       rq['User-Agent'] = @config[:user_agent] || USER_AGENT
       rs = http.request rq
@@ -139,6 +140,23 @@ class API
 
   end
 
+  class ObjectQuery < Query
+
+    def get_uri path, *ids
+      "#{API_URL}#{path}/#{ids.join(',')}"
+    end
+
+    def initialize api, entity, *ids
+      @config = api.config
+      @worker = api.worker
+      @uri = get_uri entity, *ids
+      @results = []
+      @status = Status::ENQUEUED
+      @worker << self
+    end
+
+  end
+
   attr_reader :config
   attr_reader :worker
 
@@ -149,7 +167,15 @@ class API
   end
 
   def select **query
-    Query::new(self, **query).wait
+    q = Query::new self, **query
+    q.wait
+    q.results
+  end
+
+  def get path, *ids
+    q = ObjectQuery::new self, path, *ids
+    q.wait
+    q.results
   end
 
 end

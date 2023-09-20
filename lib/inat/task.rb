@@ -58,7 +58,7 @@ class Task
       @config.deep_merge! yaml
     end
     # TODO: exception logging
-    self.instance_eval "define_singleton_method :run do\nbegin\n" + File.read(files[:source]) + "\nrescue\nend\n@done = true\nend"
+    self.instance_eval "define_singleton_method :run do\nbegin\n" + File.read(files[:source]) + "\nrescue\nensure\n@done = true\nend\nend"
   end
 
   def done?
@@ -73,7 +73,8 @@ class Task
     @config
   end
 
-  def select **params
+  private def select **query
+    #
   end
 
 end

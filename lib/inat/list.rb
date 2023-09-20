@@ -1,6 +1,23 @@
 # frozen_string_literal: true
 
 require_relative 'dataset'
+require_relative 'model/taxon'
+
+class Item
+
+  attr_reader :taxon
+  attr_reader :observations
+
+  def initialize taxon, observation
+    @taxon = taxon
+    @observation = observation
+  end
+
+  def id
+    @taxon.id
+  end
+
+end
 
 class List
 

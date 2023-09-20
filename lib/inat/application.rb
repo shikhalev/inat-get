@@ -23,6 +23,11 @@ class Application
     private :new
   end
 
+  EXE = File.basename $0
+  NAME = File.basename $0, '.rb'
+  CONFIG_PATH = File.expand_path "~/.config/#{ NAME }.yml"
+  DATA_PATH = File.expand_path "~/.local/#{ NAME }/"
+
   attr_reader :config
 
   private def setup_defaults!
@@ -47,7 +52,9 @@ class Application
       },
       data: {
         update: :update,
+        update_interval: '1d',
         cache: true,
+        directory: DATA_PATH,
       },
     }
   end
@@ -62,10 +69,6 @@ class Application
       end
     end
   end
-
-  EXE = File.basename $0
-  NAME = File.basename $0, '.rb'
-  CONFIG_PATH = File.expand_path "~/.config/#{ NAME }.yml"
 
   private def load_config!
     load_config_file! CONFIG_PATH, warn: false
@@ -245,6 +248,10 @@ class Application
         @config[:data][:update] = value
       end
 
+      o.on '-U', '--update-interval VALUE', String, 'Interval for update.' do |value|
+        @config[:data][:update_interval] = value
+      end
+
       o.on '--no-cache', 'Disable caching datasets.' do
         @config[:data][:cache] = false
       end
@@ -296,7 +303,6 @@ class Application
       @pool = []
       limit = @config[:threads][:tasks]
       until @tasks.empty? && @pool.empty? do
-        pp [@tasks.size, @pool.size]
         @pool.filter! { |t| !t.done? }
         while @pool.size < limit && !@tasks.empty? do
           task = @tasks.shift
