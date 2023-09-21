@@ -4,21 +4,25 @@ class DataSet
 
   include Enumerable
 
-  def initialize task, **query
-    @task = task
-    # TODO:
+  def initialize cache, observations
+    @cache = cache
+    @observations = observations
   end
 
   def each sort: :id, &block
     # TODO:
   end
 
-  def fetch!
-    # TODO:
+  def empty?
+    @observations.empty?
   end
 
-  def fetched?
-    # TODO:
+  def size
+    @observations.size
+  end
+
+  def observations
+    @observations.dup.freeze
   end
 
   def + other

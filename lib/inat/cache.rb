@@ -164,19 +164,30 @@ class Cache
   end
 
   private def process data, save: true
+    result = []
     data.each do |value|
       object = observation value
       object.save if save
+      result << object
     end
+    result
   end
 
   private def direct **query
     data = @api.select **query
-    process data, save: false
+    observations = process data, save: false
+    DataSet::new self, observations
   end
 
   private def offline **query
-    # TODO
+    where = []
+    args = []
+    query.each do |key, value|
+      # TODO: сделать условия !!!
+    end
+    data = @db.execute "SELECT * FROM observations WHERE #{where.join(' AND ')};", *args
+    observations = process data, save: false
+    DataSet::new self, observations
   end
 
   private def reload **query
@@ -185,9 +196,12 @@ class Cache
     offline **query
   end
 
-  private def update **query, time
-    query[:updated_since] = Time.at(time).xmlschema
-    reload **query
+  private def update time, **query
+    up_query = query.dup
+    up_query[:updated_since] = Time.at(time).xmlschema
+    data = @api.select **up_query
+    process data
+    offline **query
   end
 
   def select **query
@@ -198,18 +212,18 @@ class Cache
     mode = @config[:data][:update]
     case mode
     when :update
-      time = get_query_time query
       if time
         if (Time::now.to_i - time) < update_interval
           offline **query
         else
-          update **query, time
+          update time, **query
         end
       else
         reload **query
       end
     when :force
-      update **query
+      time = get_query_time query
+      update time, **query
     when :reload
       reload **query
     when :skip

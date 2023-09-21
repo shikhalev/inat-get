@@ -43,7 +43,7 @@ class Application
         tasks: 3,
         query_sleep: 0.1,
         worker_sleep: 1.0,
-        main_sleep: 3.0,
+        main_sleep: 1.0,
       },
       config: [],
       output: {
@@ -87,7 +87,6 @@ class Application
   LICENSE = 'GNU General Public License version 3.0 (GPLv3)'
   HOMEPAGE = 'http://github.com/shikhalev/inat-get'
   AUTHOR  = 'Ivan Shikhalev <shikhalev@gmail.com>'
-  # TODO:
   USAGE = "Usage: $ #{EXE} [options] ‹task[, ...]›"
   ABOUT = 'INat::Get — A toolset for fetching and processing data from iNaturalist.org.'
 

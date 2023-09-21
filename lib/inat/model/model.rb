@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DataModel
+module Model
 
   module Ext
 
@@ -42,8 +42,15 @@ module DataModel
 
   end
 
+  def self.models
+    @models ||= []
+    @models
+  end
+
   def self.included mod
     mod.extend Ext
+    @models ||= []
+    @models << mod
   end
 
   def update! **data

@@ -2,6 +2,7 @@
 
 require 'yaml'
 require_relative 'utils/merge'
+require_relative 'cache'
 
 class Task
 
@@ -57,6 +58,7 @@ class Task
       yaml = YAML.load_file files[:config]
       @config.deep_merge! yaml
     end
+    @cache = Cache::new @config, @api
     # TODO: exception logging
     self.instance_eval "define_singleton_method :run do\nbegin\n" + File.read(files[:source]) + "\nrescue\nensure\n@done = true\nend\nend"
   end

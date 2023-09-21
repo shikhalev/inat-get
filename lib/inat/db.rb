@@ -13,7 +13,7 @@ class DB
       query_data TEXT NOT NULL PRIMARY KEY,
       query_time INTEGER NOT NULL
     );
-    CREATE INDEX IF NOT EXISTS ix_datasets_time ON datasets (time) ASC;
+    CREATE INDEX IF NOT EXISTS ix_datasets_time ON datasets (query_time);
   SQL
 
   def initialize config
@@ -25,13 +25,14 @@ class DB
     @data.auto_vacuum = 1
     @data.results_as_hash = true
     @data.foreign_keys = true
-    @data.execute DATA_INIT
+    # TODO: init with real struct
+    # @data.execute DATA_INIT
     @sets = SQLite3::Database::open "#{@directory}/inat-cache-sets.db"
     @sets.encoding = 'UTF-8'
     @data.auto_vacuum = 1
     @sets.results_as_hash = true
-    @sets.execute SETS_INIT
-    ObjectSpace.define_finalizer self, proc do
+    @sets.execute_batch SETS_INIT
+    ObjectSpace.define_finalizer self do
       @data.close if @data
       @sets.close if @sets
     end
@@ -51,10 +52,6 @@ class DB
 
   def execute query, *args
     @data.execute query, *args
-  end
-
-  def select **query
-    # TODO:
   end
 
 end
