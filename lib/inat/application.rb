@@ -255,6 +255,22 @@ class Application
         @config[:data][:cache] = false
       end
 
+      o.on '--clean-requests', 'Clean outdated requests in data cache.' do
+        # TODO: implement
+      end
+
+      o.on '--clean-observations', 'Clean observations without request in data cache.' do
+        # TODO: implement
+      end
+
+      o.on '--clean-orphans', 'Clean orphan objects in data cache.' do
+        # TODO: implement
+      end
+
+      o.on '--clean-all', 'Clean data cache.' do
+        # TODO: implement
+      end
+
     end
 
     @rest = op.parse ARGV

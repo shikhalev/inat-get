@@ -9,6 +9,16 @@ class Cache
 
   include Values
 
+  attr_reader :config, :API, :DB
+
+  def API
+    @api
+  end
+
+  def DB
+    @db
+  end
+
   def initialize config, api
     @config = config
     @api = api
@@ -69,6 +79,13 @@ class Cache
       return fetched.first if fetched.size > 0
     end
     raise ArgumentError, "Object not found: #{entities}/#{id}."
+  end
+
+  def get_object cls, id
+    @@objects ||= {}
+    @@objects[cls] ||= {}
+    @@objects[cls][id] ||= cls.new self
+    @@objects[cls][id]
   end
 
   def observation **data

@@ -14,3 +14,9 @@ pp app
 app.run
 
 puts 'DONE'
+
+def ololo
+  __method__
+end
+
+p ololo
