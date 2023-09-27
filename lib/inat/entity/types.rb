@@ -242,6 +242,7 @@ class List
 
     def [] cls
       raise TypeError, "Invalid item type for List: #{cls.inspect}" unless cls.respond_to?(:make)
+      @@classes ||= {}
       @@classes[cls] ||= new cls
       @@classes[cls]
     end

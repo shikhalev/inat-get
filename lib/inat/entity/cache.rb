@@ -43,18 +43,6 @@ class EntityCache
         end
         @objects[id].apply! from: :DB, **data
       end
-      # update = case config[:data][:update]
-      # when :no
-      #   false
-      # when :reload, :force
-      #   !@objects[id].fetched?
-      # when :update, :skip
-      #   @objects[id].incomplete?
-      # end
-      # if update
-      #   fetched = API.get @type.path, id
-      #   @objects[id].apply! from: :API, **fetched.first
-      # end
     end
     @objects[id]
   end

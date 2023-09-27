@@ -6,6 +6,8 @@ require 'pp'
 require 'inat/application'
 require 'inat/logging'
 
+require 'inat/entity/models/observation'
+
 app = Application.init
 
 puts "\n"
@@ -14,9 +16,3 @@ pp app
 app.run
 
 puts 'DONE'
-
-def ololo
-  __method__
-end
-
-p ololo
