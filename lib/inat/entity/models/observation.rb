@@ -3,6 +3,7 @@
 require 'time'
 require 'date'
 
+require_relative '../ddl'
 require_relative '../entity'
 require_relative '../types/uuid'
 require_relative '../types/tags'
@@ -12,21 +13,26 @@ require_relative 'taxon'
 require_relative 'user'
 require_relative 'flag'
 require_relative 'sound'
-require_relative 'observationsound'
 require_relative 'photo'
-require_relative 'observationphoto'
 require_relative 'place'
-require_relative 'project'
-require_relative 'annotation'
-require_relative 'comment'
-require_relative 'identification'
+# require_relative 'project'
+
+autoload :Annotation,       'inat/entity/models/annotation'
+autoload :DataQuery,        'inat/entity/models/query'
+autoload :Comment,          'inat/entity/models/comment'
+autoload :Identification,   'inat/entity/models/identification'
+autoload :ObservationPhoto, 'inat/entity/models/observationphoto'
+autoload :ObservationSound, 'inat/entity/models/observationsound'
+autoload :Project,          'inat/entity/models/project'
+
+# class Identification < Entity; end
 
 class Observation < Entity
 
   path :observations
   table :observations
 
-  field :quality_grade, type: Symbol, index: true
+  field :quality_grade, type: Symbol, index: true, required: true
   field :uuid, type: UUID, unique: true
   field :species_guess, type: String
   field :tags, type: Tags
@@ -63,10 +69,10 @@ class Observation < Entity
   field :place_guess, type: String
 
   # Media related fields
-  links :sounds, type: List[Sound], ids_name: :sound_ids
-  backs :observation_sounds, type: List[ObservationSound], ids_name: :observation_sound_ids, backfield: :observation
-  links :photos, type: List[Photo], ids_name: :photo_ids
-  backs :observation_photos, type: List[ObservationPhoto], ids_name: :observation_photo_ids, backfield: :observation
+  backs :observation_sounds, type: List[ObservationSound], ids_name: :observation_sound_ids, backfield: :observation_id
+  links :sounds, type: List[Sound], ids_name: :sound_ids, table: :observation_sounds, backfield: :observation_id, linkfield: :sound_id, own: false
+  backs :observation_photos, type: List[ObservationPhoto], ids_name: :observation_photo_ids, backfield: :observation_id
+  links :photos, type: List[Photo], ids_name: :photo_ids, table: :observation_photos, backfield: :observation_id, linkfield: :photo_id, own: false
 
   # Projects and places
   links :places, type: List[Place], ids_name: :place_ids, index: true
@@ -83,6 +89,9 @@ class Observation < Entity
   backs :comments, type: List[Comment], ids_name: :comment_ids, backfield: :observation
   backs :identifications, type: List[Identification], ids_name: :identification_ids, backfield: :observation
 
+  links :queries, type: List[DataQuery], ids_name: :dataset_ids, table: :query_observations, backfield: :observation_id, linkfield: :query_id, own: false
+  links :all_projects, type: List[Project], ids_name: :all_project_ids, table: :project_observations, backfield: :observation_id, linkfield: :project_id,
+                       own: false, readonly: true
 
   # FIXME: обязательные
   field :outlinks, type: Wrapper
@@ -105,3 +114,5 @@ class Observation < Entity
   # TODO: фильтрация по тегам
 
 end
+
+DDL::register Observation

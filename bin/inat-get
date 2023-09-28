@@ -1,18 +1,33 @@
 #!/usr/bin/ruby
 
-require 'json'
-require 'pp'
+# require 'json'
+# require 'pp'
 
-require 'inat/application'
-require 'inat/logging'
+# require 'inat/application'
+# require 'inat/logging'
 
+require 'inat/entity/ddl'
+require 'inat/entity/model'
 require 'inat/entity/models/observation'
+require 'inat/entity/models/query'
 
-app = Application.init
+# app = Application.init
 
-puts "\n"
-pp app
+# puts "\n"
+# pp app
 
-app.run
+# app.run
 
-puts 'DONE'
+# puts 'DONE'
+
+# pp [ Taxon.ancestors.include?(Model), Model === Taxon, Object === Taxon, Kernel === Taxon ]
+
+# Observation.ancestors.each do |ancestor|
+#   p [ ancestor, ancestor > Observation ]
+# end
+
+# Taxon.ancestors.each do |ancestor|
+#   p [ ancestor, ancestor > Taxon ]
+# end
+
+puts DDL.DDL

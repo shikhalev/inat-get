@@ -133,4 +133,24 @@ class EntitiesCache
     end
   end
 
+  def observations
+    self[Observation]
+  end
+
+  def taxa
+    self[Taxon]
+  end
+
+  def users
+    self[User]
+  end
+
+  def projects
+    self[Project]
+  end
+
+  def places
+    self[Place]
+  end
+
 end
