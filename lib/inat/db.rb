@@ -3,18 +3,16 @@
 require 'fileutils'
 require 'sqlite3'
 
+require_relative './entity/models/observation'
+require_relative './entity/ddl'
+
 class DB
 
-  DATA_INIT = <<-SQL
-  SQL
-
-  SETS_INIT = <<-SQL
-    CREATE TABLE IF NOT EXISTS datasets (
-      query_data TEXT NOT NULL PRIMARY KEY,
-      query_time INTEGER NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS ix_datasets_time ON datasets (query_time);
-  SQL
+  def self.get_finalizer *dbs
+    proc do
+      dbs.each { |db| db.close }
+    end
+  end
 
   def initialize config
     @config = config
@@ -25,17 +23,8 @@ class DB
     @data.auto_vacuum = 1
     @data.results_as_hash = true
     @data.foreign_keys = true
-    # TODO: init with real struct
-    # @data.execute DATA_INIT
-    @sets = SQLite3::Database::open "#{@directory}/inat-cache-sets.db"
-    @sets.encoding = 'UTF-8'
-    @data.auto_vacuum = 1
-    @sets.results_as_hash = true
-    @sets.execute_batch SETS_INIT
-    ObjectSpace.define_finalizer self do
-      @data.close if @data
-      @sets.close if @sets
-    end
+    @data.execute_batch DDL.DDL
+    ObjectSpace.define_finalizer self, self.class.get_finalizer(@data)
   end
 
   def clean_query_times last_time

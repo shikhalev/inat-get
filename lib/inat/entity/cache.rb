@@ -25,6 +25,10 @@ class EntityCache
   end
 
   def [] id
+    obj = get id
+  end
+
+  def cached id
     raise TypeError, "'id' parameter is not a valid Integer: #{id.inspect}!" unless Integer === id
     if !@objects.has_key?(id)
       @objects[id] = @type.new @root
@@ -49,10 +53,20 @@ class EntityCache
 
   def get *ids
     raise ArgumentError, "At least one argument must be provided!" if ids.empty?
-    if ids.size == 1
-      self[ids.first]
+    raw = ids.map { |id| cached(id) }
+    inc = case config[:data][:update]
+    when :update, :skip
+      raw.select { |obj| obj.incomplete? }.map { |obj| obj.id }
+    when :force, :reload
+      raw.select { |obj| !obj.fetched? }.map { |obj| obj.id }
     else
-      ids.map { |id| self[id] }
+      []
+    end
+    fetch *inc
+    if ids.size == 1
+      raw.first
+    else
+      raw
     end
   end
 
@@ -67,9 +81,9 @@ class EntityCache
     data = API.get @type.path, *ids
     if ids.size == 1
       hash = data.first
-      self[hash[:id] || hash['id']].apply!(from: :API, hash)
+      self.cached(hash[:id] || hash['id']).apply!(from: :API, hash).save
     else
-      data.map { |hash| self[hash[:id] || hash['id']].apply!(from: API, hash) }
+      data.map { |hash| self.cached(hash[:id] || hash['id']).apply!(from: :API, hash).save }
     end
   end
 

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative 'observation'
+
+autoload :Photo, 'inat/entity/models/photo'
 
 class ObservationPhoto < Entity
 
@@ -15,5 +15,3 @@ class ObservationPhoto < Entity
   field :photo, type: Photo, required: true
 
 end
-
-DDL::register ObservationPhoto

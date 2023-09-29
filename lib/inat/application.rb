@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'etc'
 require 'date'
 require 'yaml'
 require 'logger'
@@ -8,8 +9,11 @@ require 'optparse'
 require_relative './utils/merge'
 require_relative './api'
 require_relative './task'
+require_relative './consts'
 
 class Application
+
+  include Constants
 
   using DeepMerge
 
@@ -27,37 +31,6 @@ class Application
   NAME = File.basename $0, '.rb'
   CONFIG_PATH = File.expand_path "~/.config/#{ NAME }.yml"
   DATA_PATH = File.expand_path "~/.local/#{ NAME }/"
-
-  attr_reader :config
-
-  private def setup_defaults!
-    @config = {
-      verbose: Logger::Severity::WARN,
-      log: {
-        level: Logger::Severity::INFO,
-        enable: false,
-        file: :default
-      },
-      threads: {
-        enable: true,
-        tasks: 3,
-        query_sleep: 0.1,
-        worker_sleep: 1.0,
-        main_sleep: 1.0,
-      },
-      config: [],
-      output: {
-        file: :default,
-        directory: '.',
-      },
-      data: {
-        update: :update,
-        update_interval: '1d',
-        cache: true,
-        directory: DATA_PATH,
-      },
-    }
-  end
 
   private def load_config_file! file, warn: true
     if File.exists?(file)
@@ -83,14 +56,46 @@ class Application
     DEFAULT = UPDATE
   end
 
-  VERSION = '0.1.1'
   LICENSE = 'GNU General Public License version 3.0 (GPLv3)'
-  HOMEPAGE = 'http://github.com/shikhalev/inat-get'
   AUTHOR  = 'Ivan Shikhalev <shikhalev@gmail.com>'
   USAGE = "Usage: $ #{EXE} [options] ‹task[, ...]›"
   ABOUT = 'INat::Get — A toolset for fetching and processing data from iNaturalist.org.'
 
   private_constant :USAGE, :ABOUT
+
+  attr_reader :config
+
+  private def setup_defaults!
+    @config = {
+      verbose: Logger::Severity::WARN,
+      log: {
+        level: Logger::Severity::INFO,
+        enable: false,
+        file: :default
+      },
+      threads: {
+        enable: true,
+        tasks: 3,
+      },
+      config: [],
+      output: {
+        file: :default,
+        directory: '.',
+      },
+      data: {
+        update: :update,
+        update_interval: '1d',
+        cache: true,
+        directory: DATA_PATH,
+      },
+      http: {
+        api_root: 'https://api.inaturalist.org/v1/',
+        user_agent: "iNat::Get http client [#{NAME} v#{VERSION} / #{Etc.getlogin}]",
+        locale: nil,
+        preferred_place_id: nil,
+      }
+    }
+  end
 
   private def parse_command_line!
     op = OptionParser::new USAGE do |o|
@@ -255,6 +260,8 @@ class Application
         @config[:data][:cache] = false
       end
 
+      o.separator ''
+
       o.on '--clean-requests', 'Clean outdated requests in data cache.' do
         # TODO: implement
       end
@@ -269,6 +276,16 @@ class Application
 
       o.on '--clean-all', 'Clean data cache.' do
         # TODO: implement
+      end
+
+      o.separator ''
+
+      o.on '--locale LOCALE', String, 'Locale for API.' do |value|
+        @config[:http][:locale] = value.gsub('_', '-')
+      end
+
+      o.on '--preferred-place ID', Integer, 'Preferred place for API.' do |value|
+        @config[:http][:preferred_place_id] = value
       end
 
     end
@@ -328,7 +345,7 @@ class Application
             @pool << task
           end
         end
-        sleep @config[:threads][:main_sleep]
+        sleep WAIT_SLEEP
       end
     else
       @tasks.each do |t|

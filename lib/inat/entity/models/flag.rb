@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative 'user'
+
+autoload :User, 'inat/entity/models/user'
 
 class Flag < Entity
 
@@ -17,5 +17,3 @@ class Flag < Entity
   field :comment, type: String
 
 end
-
-DDL::register Flag

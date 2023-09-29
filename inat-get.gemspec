@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require_relative 'lib/inat/application'
+require_relative 'lib/inat/consts'
 
 Gem::Specification.new do |spec|
   spec.name = "inat-get"
-  spec.version = Application::VERSION
+  spec.version = Constants::VERSION
   spec.authors = ["Ivan Shikhalev"]
   spec.email = ["shikhalev@gmail.com"]
 
   spec.summary = "Client for iNaturalist API."
   # spec.description = "TODO: Write a longer description or delete this line."
-  spec.homepage = Application::HOMEPAGE
+  spec.homepage = Constants::HOMEPAGE
   spec.license = "GPL-3.0"
   spec.required_ruby_version = ">= 3.1.0"
 

@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative '../types/wrapper'
 
 class User < Entity
 
@@ -33,5 +31,3 @@ class User < Entity
   field :preferences, type: Wrapper
 
 end
-
-DDL::register User

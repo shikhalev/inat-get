@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
 
 class Place < Entity
@@ -26,5 +25,3 @@ class Place < Entity
   end
 
 end
-
-DDL::register Place

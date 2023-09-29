@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative '../types/wrapper'
-require_relative 'observation'
 
 class Comment < Entity
 
@@ -23,5 +20,3 @@ class Comment < Entity
   field :moderator_actions, type: Wrapper
 
 end
-
-DDL::register Comment

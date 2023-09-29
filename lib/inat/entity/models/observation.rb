@@ -3,29 +3,24 @@
 require 'time'
 require 'date'
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative '../types/uuid'
-require_relative '../types/tags'
-require_relative '../types/geojson'
-require_relative '../types/location'
-require_relative 'taxon'
-require_relative 'user'
-require_relative 'flag'
-require_relative 'sound'
-require_relative 'photo'
-require_relative 'place'
-# require_relative 'project'
+
+autoload :GeoJSON,  'inat/entity/types/geojson'
+autoload :Location, 'inat/entity/types/location'
+autoload :Tags,     'inat/entity/types/tags'
+autoload :UUID,     'inat/entity/types/uuid'
 
 autoload :Annotation,       'inat/entity/models/annotation'
-autoload :DataQuery,        'inat/entity/models/query'
 autoload :Comment,          'inat/entity/models/comment'
+autoload :DataQuery,        'inat/entity/models/query'
+autoload :Flag,             'inat/entity/models/flag'
 autoload :Identification,   'inat/entity/models/identification'
 autoload :ObservationPhoto, 'inat/entity/models/observationphoto'
 autoload :ObservationSound, 'inat/entity/models/observationsound'
+autoload :Place,            'inat/entity/models/place'
 autoload :Project,          'inat/entity/models/project'
-
-# class Identification < Entity; end
+autoload :Taxon,            'inat/entity/models/taxon'
+autoload :User,             'inat/entity/models/user'
 
 class Observation < Entity
 
@@ -85,9 +80,9 @@ class Observation < Entity
   field :num_identification_agreements, type: Integer
   field :identifications_most_disagree, type: Boolean
   field :num_identification_disagreements, type: Integer
-  backs :annotations, type: List[Annotation], ids_name: :annotation_ids, backfield: :observation
-  backs :comments, type: List[Comment], ids_name: :comment_ids, backfield: :observation
-  backs :identifications, type: List[Identification], ids_name: :identification_ids, backfield: :observation
+  backs :annotations, type: List[Annotation], ids_name: :annotation_ids, backfield: :observation_id
+  backs :comments, type: List[Comment], ids_name: :comment_ids, backfield: :observation_id
+  backs :identifications, type: List[Identification], ids_name: :identification_ids, backfield: :observation_id
 
   links :queries, type: List[DataQuery], ids_name: :dataset_ids, table: :query_observations, backfield: :observation_id, linkfield: :query_id, own: false
   links :all_projects, type: List[Project], ids_name: :all_project_ids, table: :project_observations, backfield: :observation_id, linkfield: :project_id,
@@ -114,5 +109,3 @@ class Observation < Entity
   # TODO: фильтрация по тегам
 
 end
-
-DDL::register Observation

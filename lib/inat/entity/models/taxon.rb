@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative '../types/wrapper'
-require_relative '../types/ancestry'
-require_relative 'photo'
+
+autoload :Ancestry, 'inat/entity/types/ancestry'
+
+autoload :Photo, 'inat/entity/models/photo'
 
 class Taxon < Entity
 
@@ -58,5 +58,3 @@ class Taxon < Entity
   end
 
 end
-
-DDL::register Taxon

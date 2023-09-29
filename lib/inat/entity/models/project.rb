@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative '../types/wrapper'
-require_relative 'observation'
 
-# autoload :Observation, 'inat/entity/models/observation'
 autoload :ProjectAdmin, 'inat/entity/models/projectadmin'
 
 class Project < Entity
@@ -50,5 +46,3 @@ class Project < Entity
   field :rule_preferences, type: Wrapper
 
 end
-
-DDL::register Project

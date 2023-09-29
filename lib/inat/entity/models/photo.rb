@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative '../types/wrapper'
-require_relative 'flag'
 
 class Photo < Entity
 
@@ -30,5 +27,3 @@ class Photo < Entity
   field :native_photo_id, type: Wrapper
 
 end
-
-DDL::register Photo

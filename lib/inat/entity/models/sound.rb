@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative '../types/wrapper'
 
 class Sound < Entity
 
@@ -24,5 +22,3 @@ class Sound < Entity
   field :moderator_actions, type: Wrapper
 
 end
-
-DDL::register Sound

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
 
 class ProjectAdmin < Entity
@@ -12,5 +11,3 @@ class ProjectAdmin < Entity
   field :user, type: User, index: true, required: true
 
 end
-
-DDL::register ProjectAdmin

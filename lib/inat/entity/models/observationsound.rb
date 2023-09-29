@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../ddl'
 require_relative '../entity'
-require_relative 'observation'
+
+autoload :Sound, 'inat/entity/models/sound'
 
 class ObservationSound < Entity
 
@@ -14,5 +14,3 @@ class ObservationSound < Entity
   field :sound, type: Sound, required: true
 
 end
-
-DDL::register ObservationSound

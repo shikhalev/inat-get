@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'types'
+require_relative 'ddl'
 
 # # structure forward declaration
 # module Model
@@ -15,6 +16,10 @@ require_relative 'types'
 class Model
 
   class << self
+
+    def inherited cls
+      DDL << cls
+    end
 
     using Types
 

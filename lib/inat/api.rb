@@ -4,12 +4,15 @@ require 'json'
 require 'uri'
 require 'net/http'
 require_relative 'utils/merge'
+require_relative 'consts'
 
 class API
 
   using DeepMerge
 
   class Worker
+
+    include Constants
 
     attr_reader :thread
 
@@ -27,9 +30,9 @@ class API
             first = @queue.shift
             if first
               first.execute
-              sleep @config[:threads][:worker_sleep]
+              sleep WORK_SLEEP
             else
-              sleep @config[:threads][:query_sleep]
+              sleep WAIT_SLEEP
             end
           end
         end
