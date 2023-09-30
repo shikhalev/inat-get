@@ -88,6 +88,9 @@ class Observation < Entity
   links :all_projects, type: List[Project], ids_name: :all_project_ids, table: :project_observations, backfield: :observation_id, linkfield: :project_id,
                        own: false, readonly: true
 
+
+  links :ident_taxa, type: List[Taxon], ids_name: :ident_taxon_ids, table: :observation_ident_taxa, index: true
+
   # FIXME: обязательные
   field :outlinks, type: Wrapper
   # field :ofvs
@@ -101,7 +104,7 @@ class Observation < Entity
   # field :project_ids_with_curator_id
   # field :project_ids_without_curator_id
   # field :project_observations
-  # field :ident_taxon_ids
+  #
   # field :preferences
   # field :map_scale
   # backs :non_owner_ids

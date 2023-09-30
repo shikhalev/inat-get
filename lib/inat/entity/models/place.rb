@@ -18,7 +18,7 @@ class Place < Entity
   field :location, type: Location
   field :geometry_geojson, type: GeoJSON
 
-  links :ancestor_places, type: List[Place], ids_name: 'ancestor_place_ids', table: :place_ancestors, linkfield: :ancestor_id, index: true
+  links :ancestor_places, type: List[Place], ids_name: :ancestor_place_ids, table: :place_ancestors, linkfield: :ancestor_id, index: true
 
   def === other
     self.id == other.id && other.ancestor_place_ids.include?(self.id)
