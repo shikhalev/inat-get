@@ -44,11 +44,7 @@ class INatQuery
     uri += "/#{ ids.map(&:to_s).join(',') }" unless @ids.empty?
     params = @params.merge append
     unless params.empty?
-      params.merge! {
-        order: :asc,
-        order_by: :id,
-        per_page: 200
-      }
+      params.merge!({ order: :asc, order_by: :id, per_page: 200 })
       params[:locale] = config[:http][:locale] if config[:http][:locale]
       params[:preferred_place_id] = config[:http][:preferred_place_id] if config[:http][:preferred_place_id]
       searches = []
@@ -62,7 +58,7 @@ class INatQuery
   end
 
   private def fetch http, uri
-    p uri                                                                                 # FIXME: log
+    # TODO: log
     request = Net::HTTP::Get::new uri
     request['User-Agent'] = config[:http][:user_agent] || 'INat::Get unknown instance'
     response = http.request request

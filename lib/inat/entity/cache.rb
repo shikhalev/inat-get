@@ -4,7 +4,7 @@ class EntityCache
 
   include Enumerable
 
-  attr_reader :root, :type, :API, :DB
+  attr_reader :root, :type, :API, :DB, :task
 
   def API
     @root.API
@@ -16,6 +16,10 @@ class EntityCache
 
   def config
     @root.config
+  end
+
+  def task
+    @root.task
   end
 
   def initialize root, type
@@ -111,23 +115,23 @@ class EntitiesCache
 
   include Enumerable
 
-  attr_reader :cache
-  attr_reader :API, :DB
+  attr_reader :task
+  attr_reader :API, :DB, :config
 
   def API
-    @cache.API
+    @task.API
   end
 
   def DB
-    @cache.DB
+    @task.DB
   end
 
   def config
-    @cache.config
+    @task.config
   end
 
-  def initialize cache
-    @cache = cache
+  def initialize task
+    @task = task
   end
 
   def [] type

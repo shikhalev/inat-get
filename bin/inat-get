@@ -2,18 +2,18 @@
 
 require 'pp'
 
-# require 'inat/application'
+require 'inat/application'
 # require 'inat/logging'
 
-require 'inat/entity/models/observation'
+# require 'inat/entity/models/observation'
 
-# app = Application.init
+app = Application.init
 
-# puts "\n"
+puts "\n"
 # pp app
 
-# app.run
+app.run
 
-# puts 'DONE'
+puts 'DONE'
 
-puts DDL.DDL
+# puts DDL.DDL

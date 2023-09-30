@@ -14,7 +14,7 @@ class INatWorker
 
   def initialize api
     @api = api
-    @threads = @config[:threads][:enable]
+    @threads = config[:threads][:enable]
     if @threads
       @stop = false
       @queue = Queue::new
@@ -34,7 +34,7 @@ class INatWorker
   end
 
   def run
-    if @config[:threads][:enable]
+    if config[:threads][:enable]
       @thread = Thread::start do
         until @stop do
           query = @queue.pop

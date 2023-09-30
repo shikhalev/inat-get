@@ -7,7 +7,7 @@ require 'logger'
 require 'optparse'
 
 require_relative './utils/merge'
-require_relative './api'
+require_relative './api/api'
 require_relative './task'
 require_relative './consts'
 
@@ -300,7 +300,7 @@ class Application
   end
 
   private def init_api!
-    @api = API::new @config
+    @api = INatAPI::new self
   end
 
   private def create_task task

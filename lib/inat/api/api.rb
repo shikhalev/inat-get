@@ -5,7 +5,7 @@ require_relative 'worker'
 
 class INatAPI
 
-  attr_reader :config
+  attr_reader :config, :worker
 
   def config
     @application.config
@@ -13,7 +13,7 @@ class INatAPI
 
   def initialize application
     @application = application
-    @worker = Worker::new self
+    @worker = INatWorker::new self
     @worker.run
   end
 
