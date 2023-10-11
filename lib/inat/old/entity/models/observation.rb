@@ -10,7 +10,6 @@ autoload :Location, 'inat/entity/types/location'
 autoload :Tags,     'inat/entity/types/tags'
 autoload :UUID,     'inat/entity/types/uuid'
 
-autoload :Annotation,       'inat/entity/models/annotation'
 autoload :Comment,          'inat/entity/models/comment'
 autoload :DataQuery,        'inat/entity/models/query'
 autoload :Flag,             'inat/entity/models/flag'
@@ -21,6 +20,7 @@ autoload :Place,            'inat/entity/models/place'
 autoload :Project,          'inat/entity/models/project'
 autoload :Taxon,            'inat/entity/models/taxon'
 autoload :User,             'inat/entity/models/user'
+autoload :Vote,             'inat/entity/models/vote'
 
 class Observation < Entity
 
@@ -80,18 +80,19 @@ class Observation < Entity
   field :num_identification_agreements, type: Integer
   field :identifications_most_disagree, type: Boolean
   field :num_identification_disagreements, type: Integer
-  backs :annotations, type: List[Annotation], ids_name: :annotation_ids, backfield: :observation_id
   backs :comments, type: List[Comment], ids_name: :comment_ids, backfield: :observation_id
   backs :identifications, type: List[Identification], ids_name: :identification_ids, backfield: :observation_id
 
   links :queries, type: List[DataQuery], ids_name: :dataset_ids, table: :query_observations, backfield: :observation_id, linkfield: :query_id, own: false
-  links :all_projects, type: List[Project], ids_name: :all_project_ids, table: :project_observations, backfield: :observation_id, linkfield: :project_id,
-                       own: false, readonly: true
-
+  links :all_projects, type: List[Project], ids_name: :all_project_ids, table: :project_observations, backfield: :observation_id, linkfield: :project_id, own: false
 
   links :ident_taxa, type: List[Taxon], ids_name: :ident_taxon_ids, table: :observation_ident_taxa, index: true
 
+  backs :votes, type: List[Vote], ids_name: :vote_ids, backfield: :observation_id
+  links :faves, type: List[Vote], ids_name: :fave_ids, table: :observation_faves, backfield: :observation_id, linkfield: :vote_id, index: true
+
   # FIXME: обязательные
+  field :annotations, type: Wrapper
   field :outlinks, type: Wrapper
   # field :ofvs
   # field :votes

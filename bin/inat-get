@@ -2,18 +2,22 @@
 
 require 'pp'
 
-require 'inat/application'
+# require 'inat/app/application'
 # require 'inat/logging'
 
 # require 'inat/entity/models/observation'
 
-app = Application.init
+# app = Application.new
 
-puts "\n"
-# pp app
+# puts "\n"
+# # pp app
 
-app.run
+# app.run
 
-puts 'DONE'
+# puts 'DONE'
 
 # puts DDL.DDL
+
+a = 'ololo/balabal.rb'
+
+p ( File.basename(File.expand_path(a), '.*') )

@@ -36,18 +36,18 @@ class Project < Entity
 
   links :flags, type: List[Flag], ids_name: :flag_ids
 
-  links :observations, type: List[Observation], ids_name: :observation_ids, table: :project_observations, backfield: :project_id, linkfield: :observation_id,
-                       own: false, readonly: true
+  links :observations, type: List[Observation], ids_name: :observation_ids, table: :project_observations,
+                      backfield: :project_id, linkfield: :observation_id, own: false
 
-  links :subprojects, type: List[Project], ids_name: :subprojects_ids, table: :project_children, backfield: :project_id, linkfield: :child_id, own: false, readonly: true
+  links :subprojects, type: List[Project], ids_name: :subprojects_ids, table: :project_children, backfield: :project_id, linkfield: :child_id, own: false
   links :included_taxa, type: List[Taxon], ids_name: :included_taxon_ids, table: :project_rule_taxa,
-                      backfield: :project_id, linkfield: :taxon_id, own: false, readonly: true
+                      backfield: :project_id, linkfield: :taxon_id, own: false
   links :excluded_taxa, type: List[Taxon], ids_name: :excluded_taxon_ids, table: :project_rule_excluded_taxa,
-                      backfield: :project_id, linkfield: :taxon_id, own: false, readonly: true
+                      backfield: :project_id, linkfield: :taxon_id, own: false
   links :included_places, type: List[Place], ids_name: :included_place_ids, table: :project_rule_places,
-                      backfield: :project_id, linkfield: :place_id, own: false, readonly: true
+                      backfield: :project_id, linkfield: :place_id, own: false
   links :excluded_places, type: List[Place], ids_name: :excluded_places_ids, table: :project_rule_excluded_places,
-                      backfield: :project_id, linkfield: :place_id, own: false, readonly: true
+                      backfield: :project_id, linkfield: :place_id, own: false
 
   # TODO: разобраться и сделать связи с местами и таксонами
   field :project_observation_fields, type: Wrapper

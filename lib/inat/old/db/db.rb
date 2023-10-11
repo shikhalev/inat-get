@@ -27,18 +27,6 @@ class DB
     ObjectSpace.define_finalizer self, self.class.get_finalizer(@data)
   end
 
-  def clean_query_times last_time
-    @sets.execute 'DELETE FROM datasets WHERE query_time > ?;', last_time
-  end
-
-  def get_query_times
-    @sets.execute 'SELECT query_data, query_time FROM datasets;'
-  end
-
-  def set_query_time data, time
-    @sets.execute 'INSERT OR REPLACE INTO datasets (query_data, query_time) VALUES (?, ?);', data, time
-  end
-
   def execute query, *args
     @data.execute query, *args
   end

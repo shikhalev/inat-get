@@ -53,16 +53,14 @@ class Model
       result
     end
 
-    def field name, id_name: nil, type: nil, required: false, index: nil, unique: nil, primary_key: nil, readonly: false
+    def field name, id_name: nil, type: nil, required: false, index: nil, unique: nil, primary_key: nil
       raise ArgumentError, "Invalid field type: #{type}!" unless type.respond_to?(:make)
       name = name.intern
       define_method "#{name}" do
         instance_variable_get "@#{name}"
       end
-      if !readonly
-        define_method "#{name}=" do |value|
-          instance_variable_set "@#{name}", type.make(value, cache: @cache)
-        end
+      define_method "#{name}=" do |value|
+        instance_variable_set "@#{name}", type.make(value, cache: @cache)
       end
       if Class === type && Entity > type && id_name != false
         id_name ||= "#{name}_id".intern
@@ -70,15 +68,13 @@ class Model
         define_method "#{id_name}" do
           instance_variable_get("@#{name}")&.id
         end
-        if !readonly
-          define_method "#{id_name}=" do |value|
-            obj = if value.nil?
-              nil
-            else
-              @cache[type][value]
-            end
-            instance_variable_set "@#{name}", obj
+        define_method "#{id_name}=" do |value|
+          obj = if value.nil?
+            nil
+          else
+            @cache[type][value]
           end
+          instance_variable_set "@#{name}", obj
         end
       end
       @fields ||= {}
@@ -86,14 +82,12 @@ class Model
         name: name,
         kind: :field,
         type: type,
-        readonly: readonly,
       }
       @fields[name][:id_name] = id_name unless id_name.nil?
       @fields[name][:required] = required unless required.nil?
       @fields[name][:index] = index unless index.nil?
       @fields[name][:unique] = unique unless unique.nil?
       @fields[name][:primary_key] = primary_key unless primary_key.nil?
-      @fields[name][:readonly] = readonly unless readonly.nil?
       @fields[name]
     end
 
@@ -101,17 +95,15 @@ class Model
     # Связь многие-ко-многим
     #
     # TODO: добавить сортировку
-    def links name, own: true, ids_name: nil, type: nil, table: nil, backfield: nil, linkfield: nil, readonly: false, index: nil
+    def links name, own: true, ids_name: nil, type: nil, table: nil, backfield: nil, linkfield: nil, index: nil
       raise ArgumentError, "Invalid field type: #{type.inspect}!" unless List === type
       raise ArgumentError, "'ids_name' parameter must be provided!" if ids_name.nil?
       name = name.intern
       define_method "#{name}" do
         instance_variable_get("@#{name}").dup.freeze
       end
-      if !readonly
-        define_method "#{name}=" do |value|
-          instance_variable_set "@#{name}", type.make(value, cache: @cache)
-        end
+      define_method "#{name}=" do |value|
+        instance_variable_set "@#{name}", type.make(value, cache: @cache)
       end
       if ids_name != false
         ids_name = ids_name.intern
@@ -119,12 +111,10 @@ class Model
           values = instance_variable_get "@#{name}"
           values&.map { |v| v.id }.freeze
         end
-        if !readonly
-          define_method "#{ids_name}=" do |value|
-            values = nil
-            values = @cache[type.item_class].get *value unless value.nil?
-            instance_variable_set "@#{name}", values
-          end
+        define_method "#{ids_name}=" do |value|
+          values = nil
+          values = @cache[type.item_class].get *value unless value.nil?
+          instance_variable_set "@#{name}", values
         end
       end
       table ||= "#{self.name.downcase}_#{name}".intern
@@ -135,7 +125,6 @@ class Model
         name: name,
         kind: :links,
         type: type,
-        readonly: readonly,
         ids_name: ids_name,
         own: own,
         table: table,
@@ -150,17 +139,15 @@ class Model
     # Связь один-ко-многим
     #
     # TODO: добавить сортировку
-    def backs name, own: true, ids_name: nil, type: nil, backfield: nil, readonly: false
+    def backs name, own: true, ids_name: nil, type: nil, backfield: nil
       raise ArgumentError, "Invalid field type: #{type.inspect}!" unless List === type
       raise ArgumentError, "'ids_name' parameter must be provided!" if ids_name.nil?
       name = name.intern
       define_method "#{name}" do
         instance_variable_get("@#{name}").dup.freeze
       end
-      if !readonly
-        define_method "#{name}=" do |value|
-          instance_variable_set "@#{name}", type.make(value, cache: @cache)
-        end
+      define_method "#{name}=" do |value|
+        instance_variable_set "@#{name}", type.make(value, cache: @cache)
       end
       if ids_name != false
         ids_name = ids_name.intern
@@ -168,12 +155,10 @@ class Model
           values = instance_variable_get "@#{name}"
           values&.map { |v| v.id }.freeze
         end
-        if !readonly
-          define_method "#{ids_name}=" do |value|
-            values = nil
-            values = @cache[type.item_class].get *value unless value.nil?
-            instance_variable_set "@#{name}", values
-          end
+        define_method "#{ids_name}=" do |value|
+          values = nil
+          values = @cache[type.item_class].get *value unless value.nil?
+          instance_variable_set "@#{name}", values
         end
       end
       backfield ||= "#{self.name_downcase}_id".intern
@@ -182,7 +167,6 @@ class Model
         name: name,
         kind: :backs,
         type: type,
-        readonly: readonly,
         ids_name: ids_name,
         own: own,
         backfield: backfield,
@@ -193,7 +177,7 @@ class Model
     def DDL
       inner = []
       outer = []
-      fields.select { |_, i| !i[:readonly] }.each do |name, info|
+      fields.each do |name, info|
         case info[:kind]
         when :field
           if Model > info[:type]
@@ -284,7 +268,7 @@ class Model
   end
 
   def apply! from: :API, **data
-    fields = self.class.fields.select { |_, info| !info[:readonly] }
+    fields = self.class.fields
     data.each do |key, value|
       key = key.intern
       field = fields[key]

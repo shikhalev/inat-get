@@ -91,22 +91,22 @@ class EntityCache
     end
   end
 
-  def find fetch: false, **query
-    each(fetch: fetch, **query).first
-  end
+  # def find fetch: false, **query
+  #   each(fetch: fetch, **query).first
+  # end
 
-  def each fetch: false, **query
-    if block_given?
-      @objects.each do |id, obj|
-        if obj.matches?(**query)
-          obj = self.fetch(id) if fetch
-          yield obj
-        end
-      end
-    else
-      to_enum __method__, fetch: fetch, **query
-    end
-  end
+  # def each fetch: false, **query
+  #   if block_given?
+  #     @objects.each do |id, obj|
+  #       if obj.matches?(**query)
+  #         obj = self.fetch(id) if fetch
+  #         yield obj
+  #       end
+  #     end
+  #   else
+  #     to_enum __method__, fetch: fetch, **query
+  #   end
+  # end
 
 end
 

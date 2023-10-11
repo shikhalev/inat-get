@@ -1,27 +1,22 @@
 # frozen_string_literal: true
 
-require_relative 'lib/inat/consts'
+require_relative 'lib/inat/app/info'
 
 Gem::Specification.new do |spec|
   spec.name = "inat-get"
-  spec.version = Constants::VERSION
-  spec.authors = ["Ivan Shikhalev"]
-  spec.email = ["shikhalev@gmail.com"]
+  spec.version = AppInfo::VERSION
+  spec.authors = [ AppInfo::AUTHOR ]
+  spec.email = [ AppInfo::EMAIL ]
 
   spec.summary = "Client for iNaturalist API."
   # spec.description = "TODO: Write a longer description or delete this line."
-  spec.homepage = Constants::HOMEPAGE
+  spec.homepage = AppInfo::HOMEPAGE
   spec.license = "GPL-3.0"
   spec.required_ruby_version = ">= 3.1.0"
 
-  # spec.metadata["allowed_push_host"] = "TODO: Set to your gem server 'https://example.com'"
-
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = spec.homepage
-  # spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
+  spec.metadata["source_code_uri"] = AppInfo::SOURCE_URL
 
-  # Specify which files should be added to the gem when it is released.
-  # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
   spec.files = Dir.chdir(__dir__) do
     `git ls-files -z`.split("\x0").reject do |f|
       (File.expand_path(f) == __FILE__) ||
@@ -29,12 +24,9 @@ Gem::Specification.new do |spec|
     end
   end
   spec.bindir = "bin"
-  spec.executables = ['inat-get']
-  spec.require_paths = ["lib"]
+  spec.executables = [ 'inat-get' ]
+  spec.require_paths = [ "lib" ]
 
-  # Uncomment to register a new dependency of your gem
   spec.add_dependency "sqlite3", "~> 1.6.6"
 
-  # For more information and examples about making a new gem, check out our
-  # guide at: https://bundler.io/guides/creating_gem.html
 end
