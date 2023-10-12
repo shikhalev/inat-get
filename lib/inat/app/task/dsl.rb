@@ -1,41 +1,41 @@
 # frozen_string_literal: true
 
+require_relative '../config/messagelevel'
+
 class Task; end
 
 module Task::DSL
 
-  private def select **params
+  def select **params
     # TODO: implement
   end
 
-  private def echo msg, level: :INFO
-    # TODO: implement
+  def log message, level: MessageLevel::INFO
+    logger.log name, level, message
   end
 
-  private def fatal msg
-    echo msg, level: FATAL
-    raise "Fatal: #{msg}"
+  def error message, exception: nil
+    log message, level: MessageLevel::ERROR
+    raise exception, message if exception
   end
 
-  private def error msg, fatal: false
-    if fatal
-      echo msg, level: :FATAL
-      raise "Fatal: #{msg}"
-    else
-      echo msg, level: :ERROR
-    end
+  def warning message
+    log message, level: MessageLevel::WARNING
   end
 
-  private def warning msg
-    echo msg, level: :WARNING
+  def info message
+    log message, level: MessageLevel::INFO
   end
 
-  private def info msg
-    echo msg, level: :INFO
+  def debug message
+    log message, level: MessageLevel::DEBUG
   end
 
-  private def debug msg
-    echo msg, level: :DEBUG
+  def echo message, level: MessageLevel::UNKNOWN
+    log message, level: level
   end
+
+  module_function :select
+  module_function :log, :error, :warning, :info, :debug, :echo
 
 end

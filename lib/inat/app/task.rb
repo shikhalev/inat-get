@@ -42,10 +42,14 @@ class Task
     return [ basename, name ]
   end
 
-  attr_reader :config
+  attr_reader :config, :logger
 
   def config
     @application.config
+  end
+
+  def logger
+    @application.logger
   end
 
   def done?

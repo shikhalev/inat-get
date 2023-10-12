@@ -1,14 +1,21 @@
 # frozen_string_literal: true
 
+require 'yaml'
 require 'optparse'
 
+require_relative '../utils/deep'
 require_relative 'info'
-require_relative 'messagelevel'
-require_relative 'updatemode'
+require_relative 'config/messagelevel'
+require_relative 'config/updatemode'
+require_relative 'config/shiftage'
 
 class Application
 
   include AppInfo
+
+  API_DEFAULT = 'https://api.inaturalist.org/v1/'
+  DEFAULT_LOG = "./#{ NAME }.log"
+
 
   DEFAULTS = {
     threads: {
@@ -19,6 +26,22 @@ class Application
       cache: true,
       update: UpdateMode::UPDATE,
     },
+    verbose: MessageLevel::ERROR,
+    log: {
+      enable: false,
+      file: DEFAULT_LOG,
+      level: MessageLevel::WARNING,
+      shift: {
+        age: nil,
+        size: nil,
+      },
+    },
+    api: {
+      root: API_DEFAULT,
+      locale: nil,
+      preferred_place_id: nil,
+    },
+    preamble: [],
   }
 
   CONFIG_FILE = File.expand_path "~/.config/#{ NAME }.yml"
@@ -33,6 +56,10 @@ class Application
 
       o.accept MessageLevel do |level|
         MessageLevel::parse level
+      end
+
+      o.accept ShiftAge do |shift_age|
+        ShiftAge::parse shift_age
       end
 
       o.separator ''
@@ -97,7 +124,7 @@ class Application
         options[:data][:update] = UpdateMode::RELOAD
       end
 
-      o.on '--min-update', '--skip-existing', 'Skip updating if exist.' do
+      o.on '--skip-existing', 'Skip updating if exist.' do
         options[:data][:update] = UpdateMode::MINIMAL
       end
 
@@ -107,41 +134,40 @@ class Application
 
       o.separator ''
 
-      o.on '-i', '--direct', '--no-cache', 'Do not cache.' do
-        options[:data][:cache] = false
-      end
-
-      o.separator ''
-
       o.on '--clean-requests', 'Clean outdated requests in data cache.' do
-        # TODO: implement
+        options[:preamble] << :clean_requests
       end
 
       o.on '--clean-observations', 'Clean observations without request in data cache.' do
-        # TODO: implement
+        options[:preamble] << :clean_observations
       end
 
       o.on '--clean-orphans', 'Clean orphan objects in data cache.' do
-        # TODO: implement
+        options[:preamble] << :clean_orphans
       end
 
       o.on '--clean-all', 'Clean data cache.' do
-        # TODO: implement
+        options[:preamble] << :clean_all
       end
 
       o.separator ''
       o.separator "\e[1mAPI Parameters:\e[0m"
 
       o.on '-A', '--api-root URI', String, 'API root' do |value|
-        # TODO: implement
+        options[:api] ||= {}
+        options[:api][:root] = value
       end
 
-      o.on '-L', '--locale LOCALE', String, 'Set the locale.' do
-        # TODO: implement
+      o.on '-L', '--locale LOCALE', String, 'Set the locale.' do |value|
+        value = nil if value.downcase == 'none'
+        options[:api] ||= {}
+        options[:api][:locale] = value
       end
 
       o.on '-P', '--preferred-place ID', Integer, 'Preferred place for API.' do |value|
-        # TODO: implement
+        value = nil if value == 0
+        options[:api] ||= {}
+        options[:api][:preferred_place_id] = value
       end
 
       o.separator ''
@@ -151,26 +177,53 @@ class Application
                                                                                             "  'error'",
                                                                                             "  'warn' (or 'warning')",
                                                                                             "  'info'",
-                                                                                            "  'debug'",
-                                                                                            "  'none' for disabling." do |value|
-        # TODO: implement
+                                                                                            "  'debug'" do |value|
+        options[:verbose] = value
       end
 
-      o.on '-v', '--verbose', 'Set verbose level to INFO.' do |value|
-        # TODO: implement
+      o.on '-v', '--verbose', 'Set verbose level to INFO.' do
+        options[:verbose] = MessageLevel::INFO
       end
 
       o.on '--log-level LEVEL', MessageLevel, 'Set the logging level for file log' do |value|
-        # TODO: implement
+        options[:log] ||= {}
+        options[:log][:level] = value
       end
 
       o.on '--log-file FILE', String, 'File name for log.' do |value|
-        # TODO: implement
+        value = DEFAULT_LOG if /^default$/i === value
+        options[:log] ||= {}
+        options[:log][:file] = value
       end
 
-      o.on '-l', '--log [FILE]', String, 'Enable logging to file. If file is not specified ./‹task›.log used.',
+      o.on '-l', '--log [FILE]', String, "Enable logging to file. If file is not specified './#{ NAME }.log' used.",
                                          "  'none', 'no' or 'false' to disabling." do |value|
-        # TODO: implement
+        options[:log] ||= {}
+        case value
+        when nil, /^(true|yes|default)$/i
+          options[:log][:enable] = true
+          options[:log][:file] = DEFAULT_LOG
+        when /^(false|no|none)$/i
+          options[:log][:enable] = false
+          options[:log][:file] = DEFAULT_LOG
+        else
+          options[:log][:enable] = true
+          options[:log][:file] = value.to_s
+        end
+      end
+
+      o.on '--log-shift-age AGE', ShiftAge, 'Log file shift age.' do |value|
+        value = nil if value == 0
+        options[:log] ||= {}
+        options[:log][:shift] ||= {}
+        options[:log][:shift][:age] = value
+      end
+
+      o.on '--log-shift-size SIZE', Integer, 'Log file shift size.' do |value|
+        value = nil if value == 0
+        options[:log] ||= {}
+        options[:log][:shift] ||= {}
+        options[:log][:shift][:size] = value
       end
 
       o.separator ''
@@ -188,6 +241,8 @@ class Application
     @config = DEFAULTS
     options, @files = parse_args!
     config_file = options[:config_file] || CONFIG_FILE
+    @config.deep_merge! YAML.load_file(config_file, symbolize_names: true, freeze: true) if File.exist?(config_file)
+    @config.deep_merge! options
   end
 
   attr_reader :config

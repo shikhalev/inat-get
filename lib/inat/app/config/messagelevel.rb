@@ -4,6 +4,7 @@ require 'logger'
 
 module MessageLevel
 
+  UNKNOWN = :UNKNOWN
   FATAL   = :FATAL
   ERROR   = :ERROR
   WARNING = :WARNING
@@ -16,7 +17,7 @@ module MessageLevel
     def parse level
       lvl = level.to_s.upcase.intern
       case lvl
-      when :INFO, :DEBUG, :WARNING, :ERROR, :FATAL
+      when :INFO, :DEBUG, :WARNING, :ERROR, :FATAL, :UNKNOWN
         lvl
       when :WARN
         :WARNING
@@ -27,6 +28,8 @@ module MessageLevel
 
     def severity level
       case parse(level)
+      when MessageLevel::UNKNOWN
+        Logger::Severity::UNKNOWN
       when MessageLevel::FATAL
         Logger::Severity::FATAL
       when MessageLevel::ERROR

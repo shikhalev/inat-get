@@ -1,23 +1,23 @@
 #!/usr/bin/ruby
 
 require 'pp'
+require 'yaml'
 
-# require 'inat/app/application'
+require 'inat/app/application'
 # require 'inat/logging'
 
 # require 'inat/entity/models/observation'
 
-# app = Application.new
+app = Application.new
 
 # puts "\n"
 # # pp app
+
+# puts YAML.dump(app.config)
+pp app.config
 
 # app.run
 
 # puts 'DONE'
 
 # puts DDL.DDL
-
-a = 'ololo/balabal.rb'
-
-p ( File.basename(File.expand_path(a), '.*') )

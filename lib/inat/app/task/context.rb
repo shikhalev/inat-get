@@ -6,10 +6,14 @@ class Task::Context
 
   include Task::DSL
 
-  attr_reader :name, :config
+  attr_reader :name, :config, :logger
 
   def config
     @task.config
+  end
+
+  def logger
+    @task.logger
   end
 
   def done?
