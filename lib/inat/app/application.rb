@@ -2,14 +2,29 @@
 
 require_relative 'config'
 require_relative 'logging'
+require_relative 'preamble'
+require_relative '../cache/cache'
+require_relative 'globals'
 
 class Application
 
+  include AppPreamble
+
   attr_reader :logger
+
+  def logger
+    G.logger
+  end
 
   def initialize
     setup!
-    @logger = DualLogger::new self
+    G.logger = DualLogger::new self
+    @cache = Cache::new self
+  end
+
+  def run
+    preamble!
+    # TODO: implement
   end
 
 end

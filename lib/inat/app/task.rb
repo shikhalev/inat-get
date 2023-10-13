@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'globals'
 require_relative 'task/context'
 
 class Task
@@ -42,7 +43,7 @@ class Task
     return [ basename, name ]
   end
 
-  attr_reader :config, :logger
+  attr_reader :config, :logger, :cache
 
   def config
     @application.config
@@ -52,8 +53,16 @@ class Task
     @application.logger
   end
 
+  def cache
+    @application.cache
+  end
+
+  def name
+    @context&.name
+  end
+
   def done?
-    @internal&.done?
+    @context&.done?
   end
 
   def initialize application, source
@@ -61,6 +70,14 @@ class Task
     @basename, @path = get_names source
     raise ArgumentError, "File not found: #{source}!" if @path.nil?
     @context = Task::Context::new self, @basename, @path
+  end
+
+  def start
+    slf = self
+    Thread::start do
+      G.current_task = slf
+      @context.execute
+    end
   end
 
 end

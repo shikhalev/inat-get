@@ -6,7 +6,8 @@ class Task::Context
 
   include Task::DSL
 
-  attr_reader :name, :config, :logger
+  attr_accessor :name
+  attr_reader :config, :logger, :cache
 
   def config
     @task.config
@@ -14,6 +15,10 @@ class Task::Context
 
   def logger
     @task.logger
+  end
+
+  def cache
+    @task.cache
   end
 
   def done?
@@ -29,9 +34,10 @@ class Task::Context
                 "  begin\n" +
                 "    #{source_code}\n" +
                 "  rescue Exception => e\n" +
-                "    # TODO: log\n" +
+                "    error \"\#{e.inspect}\"\n" +
+                "    debug \"\#{e.backtrace.join(\"\\n\\t\")}\"\n" +
                 "  rescue\n" +
-                "    # TODO: log\n" +
+                "    error 'Unknown error!'\n" +
                 "  end\n" +
                 "  @done = true\n" +
                 "end"

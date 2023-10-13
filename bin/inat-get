@@ -14,7 +14,8 @@ app = Application.new
 # # pp app
 
 # puts YAML.dump(app.config)
-pp app.config
+PP::pp app, $>, 64
+
 
 # app.run
 
