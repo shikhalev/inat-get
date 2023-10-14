@@ -89,6 +89,7 @@ module Params
           # no db selector
           # no ruby selector
           # (требуется более сложная структура для отслеживания)
+          # NEED: db and ruby selector
           warning "Unimpmented on cache: #{ key } => #{ value }."
         else
           raise TypeError, "Invalid 'endemic' value: #{ value.inspect }!"
@@ -107,7 +108,7 @@ module Params
           # (нужно вводить дополнительную струкутру)
           # no ruby selector
           # (нужны вычисления)
-          # NEED: implement ruby selector
+          # TODO: implement ruby selector
           warning "Unimpmented on cache: #{ key } => #{ value }."
         else
           raise TypeError, "Invalid location value: #{ value.inspect }!"
@@ -179,7 +180,7 @@ module Params
           api_params[:pcid] = value
           # no db selector
           # no ruby selector
-          # NEED: сделать выборку, в том числе совместно с project_id
+          # TODO: сделать выборку, в том числе совместно с project_id
           warning "Unimplementd on cache: #{ key } => #{ value }."
         else
           raise TypeError, "Invalid 'pcid' value: #{ value.inspect }!"
@@ -217,6 +218,7 @@ module Params
           api_params[:taxon_is_active] = value
           # no db selector
           # no ruby selector
+          # TODO: db and ruby selectors
           warning "Unimplemented on cache: #{ key } => #{ value }"
         else
           raise TypeError, "Invalid 'taxon_is_active' value: #{ value.inspect }!"
@@ -302,11 +304,11 @@ module Params
         case value
         when String, Symbol
           api_params[:ofv_datatype] = value
-          # NEED: db and ruby selectors
+          # TODO: db and ruby selectors
           warning "Unimplemented on cache: #{ key } => #{ value }."
         when Array
           api_params[:ofv_datatype] = value
-          # NEED: db and ruby selectors
+          # TODO: db and ruby selectors
           warning "Unimplemented on cache: #{ key } => #{ value }."
         else
           raise TypeError, "Invalid 'ovf_datatype' value: #{ value.inspect }!"
