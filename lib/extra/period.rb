@@ -70,7 +70,7 @@ class Period
   HOUR   = make hours:   1
   MINUTE = make minutes: 1
   SECOND = make seconds: 1
-  NULL   = make seconds: 0
+  ZERO   = make seconds: 0
 
   def weeks
     g = sgn

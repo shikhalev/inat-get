@@ -10,4 +10,12 @@ app = Application.new
 
 PP::pp app, $>, 64
 
-pp [ UUID::generate, UUID::generate(10, prefix_length: 10) ]
+pp [
+  UUID::make(1,2,3,4,5),
+  UUID::make(1,2,3,5),
+  UUID::make(1,2,5),
+  UUID::make(1,5),
+  UUID::make(5),
+
+  1022.to_uuid
+ ]
