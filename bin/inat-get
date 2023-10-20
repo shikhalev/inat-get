@@ -1,26 +1,13 @@
 #!/usr/bin/ruby -w
 
 require 'pp'
-# require 'yaml'
-# require 'time'
+
+require 'extra/uuid'
 
 require 'inat/app/application'
-# require 'inat/logging'
-
-# require 'inat/entity/models/observation'
 
 app = Application.new
 
-# puts "\n"
-# # pp app
-
-# puts YAML.dump(app.config)
 PP::pp app, $>, 64
 
-# p MessageLevel.map { |v| { v.name => [ v.order, v.data ] } }
-
-# app.run
-
-# puts 'DONE'
-
-# puts DDL.DDL
+pp [ UUID::generate, UUID::generate(10, prefix_length: 10) ]

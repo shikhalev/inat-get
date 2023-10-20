@@ -4,6 +4,7 @@ require 'yaml'
 require 'optparse'
 
 require_relative '../utils/deep'
+require_relative '../../extra/period'
 require_relative 'info'
 require_relative 'config/messagelevel'
 require_relative 'config/updatemode'
@@ -16,7 +17,6 @@ class Application
   API_DEFAULT = 'https://api.inaturalist.org/v1/'
   DEFAULT_LOG = "./#{ NAME }.log"
 
-
   DEFAULTS = {
     threads: {
       enable: true,
@@ -25,6 +25,8 @@ class Application
     data: {
       cache: true,
       update: UpdateMode::UPDATE,
+      update_period: Period::DAY,
+      obsolete_period: Period::WEEK,
     },
     verbose: MessageLevel::ERROR,
     log: {
@@ -60,6 +62,10 @@ class Application
 
       o.accept ShiftAge do |shift_age|
         ShiftAge::parse shift_age
+      end
+
+      o.accept Period do |period|
+        Period::parse period
       end
 
       o.separator ''
@@ -98,10 +104,12 @@ class Application
       o.separator "\e[1mFlow Control:\e[0m"
 
       o.on '-1', '--no-threads', 'Disable threads.' do
+        options[:threads] ||= {}
         options[:threads][:enable] = false
       end
 
       o.on '-t', '--tasks NUMBER', Integer, 'Limit number of concurrent tasks.' do |value|
+        options[:threads] ||= {}
         options[:threads][:tasks] = value
       end
 
@@ -113,23 +121,40 @@ class Application
                                                               "  'force-reload' (or 'reload')",
                                                               "  'skip-existing' (or 'minimal')",
                                                               "  'no-update' (or 'offline')" do |value|
+        options[:data] ||= {}
         options[:data][:update] = value
       end
 
       o.on '-f', '--force-update', 'Force update.' do
+        options[:data] ||= {}
         options[:data][:update] = UpdateMode::FORCE
       end
 
       o.on '-F', '--force-reload', '--reload', 'Force reload.' do
+        options[:data] ||= {}
         options[:data][:update] = UpdateMode::RELOAD
       end
 
       o.on '--skip-existing', 'Skip updating if exist.' do
+        options[:data] ||= {}
         options[:data][:update] = UpdateMode::MINIMAL
       end
 
       o.on '-n', '--offline', '--no-update', 'No updating.' do
+        options[:data] ||= {}
         options[:data][:update] = UpdateMode::OFFLINE
+      end
+
+      o.separator ''
+
+      o.on '--update-period PERIOD', Period, 'Update period.' do |value|
+        options[:data] ||= {}
+        options[:data][:update_period] = value
+      end
+
+      o.on '--obsolete-period PERIOD', Period, 'Obsolete period.' do |value|
+        options[:data] ||= {}
+        options[:data][:obsolete_period] = value
       end
 
       o.separator ''
