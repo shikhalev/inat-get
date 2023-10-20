@@ -271,6 +271,19 @@ module Params
           api_params[:id] = value
           db_params << [ "o.id IN (#{ (['?'] * value.size).join(',') })", value ]
           r_params << lambda { |o| value.include?(o.id) }
+        when Range
+          min = value.begin
+          max = value.end
+          if min != nil
+            api_params[:id_above] = min - 1
+            db_params << [ "o.id >= ?", [ min ] ]
+            r_params << lambda { |o| o.id >= min }
+          end
+          if max != nil
+            api_params[:id_below] = max + 1
+            db_params << [ "o.id <= >", [ max ] ]
+            r_params << lambda { |o| o.id <= max }
+          end
         else
           raise TypeError, "Invalid 'id' value: #{ value.inspect }!"
         end
@@ -392,8 +405,31 @@ module Params
           api_params[:rank] = value
           # NEED: implement db selector
           r_params << lambda { |o| value.any? { |r| o.taxon.rank == r.intern } }
+        when Range
+          # NEED: implement all selectors
+          warning "Unimplemented range for #{key }!"
         else
           raise TypeError, "Invalid 'rank' value: #{ value.inspect }!"
+        end
+      when :hrank
+        case value
+        when String, Symbol
+          api_params[:hrank] = value
+          # NEED: implement db selector
+          # NEED: implement ruby selector
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'hrank' value: #{ value.inspect }!"
+        end
+      when :lrank
+        case value
+        when String, Symbol
+          api_params[:lrank] = value
+          # NEED: implement db selector
+          # NEED: implement ruby selector
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'lrank' value: #{ value.inspect }!"
         end
       when :site_id
         api_params[:site_id] = value
@@ -495,6 +531,513 @@ module Params
         else
           raise TypeError, "Invalid 'user' value: #{ value.inspect }!"
         end
+      when :user_login
+        case value
+        when String, Symbol
+          api_params[:user_login] = value
+          # NEED: db selector
+          r_params << lambda { |o| o.user.login == value.to_s }
+        when Array
+          api_params[:user_login] = value
+          # NEED: db selector
+          r_params << lambda { |o| value.map(&:to_s).include?(o.user.login) }
+        else
+          raise TypeError, "Invalid 'user_login' value: #{ value.inspect }!"
+        end
+      when :ident_user_id
+        case value
+        when Integer
+          api_params[:ident_user_id] = value
+          # NEED: db selector
+          r_params << lambda { |o| o.identifications.any? { |i| i.user.id == value } }
+        else
+          raise TypeError, "Invalid 'ident_user_id' value: #{ value.inspect }!"
+        end
+      when :day
+        case value
+        when Integer, String
+          api_params[:day] = value
+          # NEED: db selector
+          r_params << lambda { |o| o.observed_on.day == value.to_i }
+        when Array
+          api_params[:day] = value
+          # NEED: db_selector
+          r_params << lambda { |o| value.map(&:to_i).include?(o.observed_on.day) }
+        else
+          raise TypeError, "Invalid 'day' value: #{ value.inspect }!"
+        end
+      when :month
+        case value
+        when Integer, String
+          api_params[:month] = value
+          # NEED: db selector
+          r_params << lambda { |o| o.observed_on.month == value.to_i }
+        when Array
+          api_params[:month] = value
+          # NEED: db selector
+          r_params << lambda { |o| value.map(&:to_i).include?(o.observed_on.month) }
+        else
+          raise TypeError, "Invalid 'month' value: #{ value.inspect }!"
+        end
+      when :year
+        case value
+        when Integer, String
+          api_params[:year] = value
+          # NEED: db selector
+          r_params << lambda { |o| o.observed_on.year == value.to_i }
+        when Array
+          api_params[:year] = value
+          # NEED: db selector
+          r_params << lambda { |o| value.map(&:to_i).include?(o.observed_on.year) }
+        else
+          raise TypeError, "Invalid 'year' value: #{ value.inspect }!"
+        end
+      when :term_id
+        api_params[:term_id] = value
+        # TODO: разобраться с термами
+      when :term_value_id
+        api_params[:term_value_id] = value
+        # TODO: разобраться с термами
+      when :without_term_id
+        api_params[:without_term_id] = value
+        # TODO: разобраться с термами
+      when :without_term_value_id
+        api_params[:without_term_value_id] = value
+        # TODO: разобраться с термами
+      when :d1
+        case value
+        when String
+          api_params[:d1] = value
+          date = Date::parse(value)
+          time = date.to_time.to_i
+          db_params << [ "o.observed_on >= ?", [ time ] ]
+          r_params << lambda { |o| o.observed_on >= date }
+        when Time
+          date = value.to_date
+          time = date.to_time.to_i
+          api_params[:d1] = date.xmlschema
+          db_params << [ "o.observed_on >= ?", [ time ] ]
+          r_params << lambda { |o| o.observed_on >= date }
+        when Date
+          date = value
+          time = date.to_time.to_i
+          api_params[:d1] = date.xmlschema
+          db_params << [ "o.observed_on >= ?", [ time ] ]
+          r_params << lambda { |o| o.observed_on >= date }
+        else
+          raise TypeError, "Invalid 'd1' value: #{ value.inspect }!"
+        end
+      when :d2
+        case value
+        when String
+          api_params[:d2] = value
+          date = Date::parse(value)
+          time = date.to_time.to_i
+          db_params << [ "o.observed_on < ?", [ time + 24 * 60 * 60 ] ]
+          r_params << lambda { |o| o.observed_on <= date }
+        when Time
+          date = value.to_date
+          time = date.to_time.to_i
+          api_params[:d2] = date.xmlschema
+          db_params << [ "o.observed_on < ?", [ time + 24 * 60 * 60 ] ]
+          r_params << lambda { |o| o.observed_on <= date }
+        when Date
+          date = value
+          time = date.to_time.to_i
+          api_params[:d2] = date.xmlschema
+          db_params << [ "o.observed_on < ?", [ time + 24 * 60 * 60 ] ]
+          r_params << lambda { |o| o.observed_on <= date }
+        else
+          raise TypeError, "Invalid 'd2' value: #{ value.inspect }!"
+        end
+      when :created_d1
+        case value
+        when String
+          api_params[:created_d1] = value
+          time = Time::parse(value)
+          db_params << [ "o.created_at >= ?", [ time.to_i ] ]
+          r_params << lambda { |o| o.created_at >= time }
+        when Time
+          api_params[:created_d1] = value.xmlschema
+          db_params << [ "o.created_at >= ?", [ value.to_i ] ]
+          r_params << lambda { |o| o.created_at >= value }
+        when Date
+          time = value.to_time
+          api_params[:created_d1] = time.xmlschema
+          db_params << [ "o.created_at >= ?", [ time.to_i ] ]
+          r_params << lambda { |o| o.created_at >= time }
+        else
+          raise TypeError, "Invalid 'created_d1' value: #{ value.inspect }!"
+        end
+      when :created_d2
+        case value
+        when String
+          api_params[:created_d2] = value
+          time = Time::parse(value)
+          db_params << [ "o.created_at < ?", [ time.to_date.to_time.to_i + 24 * 60 * 60 ] ]
+          r_params << lambda { |o| o.created_at <= time }
+        when Time
+          api_params[:created_d2] = value.xmlschema
+          db_params << [ "o.created_at <= ?", [ value.to_i ] ]
+          r_params << lambda { |o| o.created_at <= value }
+        when Date
+          time = value.to_time
+          api_params[:created_d2] = time.xmlschema
+          db_params << [ "o.created_at < ?", [ time.to_i + 24 * 60 * 60 ] ]
+          r_params << lambda { |o| o.created_at <= time }
+        else
+          raise TypeError, "Invalid 'created_d2' value: #{ value.inspect }!"
+        end
+      when :created_on
+        case value
+        when String
+          date = Date::parse value
+          time = date.to_time.to_i
+          next_time = time + 24 * 60 * 60
+          api_params[:created_on] = value
+          db_params << [ "o.created_at >= ? AND o.created_at < ?", [ time, next_time ] ]
+          r_params << lambda { |o| o.created_at.to_date == date }
+        when Time
+          date = value.to_date
+          time = date.to_time.to_i
+          next_time = time + 24 * 60 * 60
+          api_params[:created_on] = date.xmlschema
+          db_params << [ "o.created_at >= ? AND o.created_at < ?", [ time, next_time ] ]
+          r_params << lambda { |o| o.created_at.to_date == date }
+        when Date
+          time = value.to_time.to_i
+          next_time = time + 24 + 60 + 60
+          api_params[:created_on] = value.xmlschema
+          db_params << [ "o.created_at >= ? AND o.created_at < ?", [ time, next_time ] ]
+          r_params << lambda { |o| o.created_at.to_date == value }
+        when Range
+          min = value.begin
+          max = value.end
+          if min != nil
+            api_params[:created_d1] = min.xmlschema
+            db_params << [ "o.created_at >= ?", [ min.to_date.to_time.to_i ] ]
+            r_params << lambda { |o| o.created_at.to_date >= min.to_date }
+          end
+          if max != nil
+            api_params[:created_d2] = max.xmlschema
+            db_params << [ "o.created_at < ?", [ max.to_date.to_time.to_i + 24 * 60 * 60 ] ]
+            r_params << lambda { |o| o.created_at.to_date <= max.to_date }
+          end
+        else
+          raise TypeError, "Invalid 'created_on' value: #{ value.inspect }!"
+        end
+      when :observed_on
+        case value
+        when String
+          date = Date::parse value
+          time = Date.to_time.to_i
+          next_time = time + 24 * 60 * 60
+          api_params[:created_on] = value
+          db_params << [ "o.observed_on >= ? AND o.observed_on < ?", [ time, next_time ] ]
+          r_params << lambda { |o| o.observed_on == date }
+        when Time
+          date = value.to_date
+          time = date.to_time.to_i
+          next_time = time + 24 * 60 * 60
+          api_params[:created_on] = date.xmlschema
+          db_params << [ "o.observed_on >= ? AND o.observed_on < ?", [ time, next_time ] ]
+          r_params << lambda { |o| o.observed_on == date }
+        when Date
+          date = value
+          time = date.to_time.to_i
+          next_time = time + 24 * 60 * 60
+          api_params[:created_on] = date.xmlschema
+          db_params << [ "o.observed_on >= ? AND o.observed_on < ?", [ time, next_time ] ]
+          r_params << lambda { |o| o.observed_on == date }
+        when Range
+          min = value.begin
+          max = value.end
+          if min != nil
+            api_params[:d1] = min.xmlschema
+            db_params << [ "o.observed_on >= ?", [ min.to_date.to_time.to_i ] ]
+            r_params << lambda { |o| o.observed_on >= min.to_date }
+          end
+          if max != nil
+            api_params[:d2] = max.xmlschema
+            db_params << [ "o.observed_on < ?", [ max.to_date.to_time.to_i + 24 * 60 * 60 ] ]
+            r_params << lambda { |o| o.observed_on <= max.to_date }
+          end
+        else
+          raise TypeError, "Invalid 'observed_on' value: #{ value.inspect }!"
+        end
+      when :unobserved_by_user_id
+        case value
+        when Integer
+          api_params[:unobserved_by_user_id] = value
+          # TODO: db and ruby selectors
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'unobserved_by_user_id' value: #{ value.inspect }!"
+        end
+      when :apply_project_rules_for
+        case value
+        when Integer, String, Symbol
+          api_params[:apply_project_rules_for] = value
+          # TODO: разобраться, можно ли вообще прокэшировать
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'apply_project_rules_for' value: #{ value.inspect }!"
+        end
+      when :not_matching_project_rules_for
+        case value
+        when Integer, String, Symbol
+          api_params[:not_matching_project_rules_for] = value
+          # TODO: разобраться, можно ли вообще прокэшировать
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'apply_project_rules_for' value: #{ value.inspect }!"
+        end
+      when :cs
+        case value
+        when String, Symbol
+          api_params[:cs] = value
+          # TODO: db and ruby selectors
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'cs' value: #{ value.inspect }!"
+        end
+      when :csa
+        case value
+        when String, Symbol
+          api_params[:csa] = value
+          # TODO: db and ruby selectors
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'csa' value: #{ value.inspect }!"
+        end
+      when :sci
+        case value
+        when String, Symbol, Array
+          api_params[:csi] = value
+          # TODO: db and ruby selector
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'csi' value: #{ value.inspect }!"
+        end
+      when :geoprivacy
+        case value
+        when String, Symbol
+          api_params[:geoprivacy] = value.intern
+          db_params << [ "o.geoprivacy = ?", [ value ] ]
+          r_params << lambda { |o| o.geoprivacy == value.intern }
+        when Array
+          api_params[:geoprivacy] = value.map(&:intern)
+          db_params << [ "o.geoprivacy IN (#{ (['?'] * value.size).join(',') })", value ]
+          r_params << lambda { |o| value.any? { |g| o.geoprivacy == g.intern } }
+        else
+          raise TypeError, "Invalid 'geoprivacy' value: #{ value.inspect }!"
+        end
+      when :taxon_geoprivacy
+        case value
+        when String, Symbol
+          api_params[:taxon_geoprivacy] = value.intern
+          db_params << [ "o.taxon_geoprivacy = ?", [ value ] ]
+          r_params << lambda { |o| o.taxon_geoprivacy == value.intern }
+        when Array
+          api_params[:taxon_geoprivacy] = value.map(&:intern)
+          db_params << [ "o.taxon_geoprivacy IN (#{ (['?'] * value.size).join(',') })", value ]
+          r_params << lambda { |o| value.any? { |g| o.taxon_geoprivacy == g.intern } }
+        else
+          raise TypeError, "Invalid 'taxon_geoprivacy' value: #{ value.inspect }!"
+        end
+      when :iconic_taxa
+        case value
+        when String, Symbol
+          api_params[:iconic_taxa] = value
+          # NEED: db selector
+          r_params << lambda { |o| o.taxon.iconic_taxon_name == value.intern }
+          # TODO: возможно, следует добавить сравнение и с community_taxon
+        when Array
+          api_params[:iconic_taxa] = value
+          # NEED: db selector
+          r_params << lambda { |o| value.any? { |t| o.taxon.iconic_taxon_name == t.intern } }
+        else
+          raise TypeError, "Invalid 'iconic_taxa' value: #{ value.inspect }!"
+        end
+      when :id_above
+        case value
+        when Integer
+          api_params[:id_above] = value
+          db_params << [ "o.id > ?", [ value ] ]
+          r_params << lambda { |o| o.id > value }
+        else
+          raise TypeError, "Invalid 'id_above' value: #{ value.inspect }!"
+        end
+      when :id_below
+        case value
+        when Integer
+          api_params[:id_below] = value
+          db_params << [ "o.id < ?", [ value ] ]
+          r_params << lambda { |o| o.id < value }
+        else
+          raise TypeError, "Invalid 'id_below' value: #{ value.inspect }!"
+        end
+      when :identifications
+        case value
+        when String, Symbol
+          api_params[:identifications] = value
+          # TODO: db and ruby selectors
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'identifications' value: #{ value.inspect }!"
+        end
+      when :lat
+        case value
+        when Numeric
+          api_params[:lat] = value
+          # TODO: db and ruby selectors
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'lat' value: #{ value.inspect }!"
+        end
+      when :lng
+        case value
+        when Numeric
+          api_params[:lng] = value
+          # TODO: db and ruby selectors
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'lng' value: #{ value.inspect }!"
+        end
+      when :radius
+        case value
+        when Numeric
+          api_params[:radius] = value
+          # TODO: db and ruby selectors
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid 'radius' value: #{ value.inspect }!"
+        end
+      when :nelat
+        case value
+        when Numeric
+          api_params[:nelat] = value
+          # NEED: db and ruby selectors
+          # (тут надо внести запись координат в основную таблицу в явном виде)
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid '#{ key }' value: #{ value.inspect }!"
+        end
+      when :nelng
+        case value
+        when Numeric
+          api_params[:nelng] = value
+          # NEED: db and ruby selectors
+          # (тут надо внести запись координат в основную таблицу в явном виде)
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid '#{ key }' value: #{ value.inspect }!"
+        end
+      when :swlat
+        case value
+        when Numeric
+          api_params[:swlat] = value
+          # NEED: db and ruby selectors
+          # (тут надо внести запись координат в основную таблицу в явном виде)
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid '#{ key }' value: #{ value.inspect }!"
+        end
+      when :swlng
+        case value
+        when Numeric
+          api_params[:swlng] = value
+          # NEED: db and ruby selectors
+          #      (тут надо внести запись координат в основную таблицу в явном виде)
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid '#{ key }' value: #{ value.inspect }!"
+        end
+      when :list_id
+        case value
+        when Integer
+          api_params[:list_id] = value
+          # TODO: подумать, что можно сделать. Хотя вряд ли.
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid '#{ key }' value: #{ value.inspect }!"
+        end
+      when :not_in_project
+        case value
+        when Integer, String, Symbol
+          api_params[:not_in_project] = value
+          # NEED: db and ruby selectors
+          warning "Unimplemented on cache: #{ key } => #{ value }."
+        else
+          raise TypeError, "Invalid '#{ key }' value: #{ value.inspect }!"
+        end
+      when :q
+        api_params[:q] = value
+        # TODO: подумать о кэшировании
+        #       может быть, использовать запрос only ID
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :search_on
+        api_params[:search_on] = value
+        # TODO: подумать о кэшировании
+        #       может быть, использовать запрос only ID
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :quality_grade
+        case value
+        when String, Symbol
+          api_params[:quality_grade] = value
+          db_params << [ "o.quality_grade = ?", [ value ] ]
+          r_params << lambda { |o| o.quality_grade == value.intern }
+        when Array
+          api_params[:quality_grade] = value
+          db_params << [ "o.quality_grade IN (#{ (['?'] * value.size).join(',') })", value ]
+          r_params << lambda { |o| value.any? { |g| o.quality_grade == g.intern } }
+        else
+          raise TypeError, "Invalid '#{ key }' value: #{ value.inspect }!"
+        end
+      when :updated_since
+        api_params[:updated_since] = value
+        # TODO: может, вообще не использовать?
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :viewer_id
+        api_params[:viewer_id] = value
+        # NEED: db and ruby selectors
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :reviewed
+        api_params[:reviewed] = value
+        # NEED: db and ruby selectors
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :locale
+        api_params[:locale] = value
+        # TODO: может, вообще не использовать?
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :preferred_place_id
+        api_params[:preferred_place_id] = value
+        # TODO: может, вообще не использовать?
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :ttl
+        api_params[:ttl] = value
+        # TODO: может, вообще не использовать?
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :page
+        api_params[:page] = value
+        # TODO: может, вообще не использовать?
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :per_page
+        api_params[:per_page] = value
+        # TODO: может, вообще не использовать?
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :order
+        api_params[:order] = value
+        # TODO: может, вообще не использовать?
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :order_by
+        api_params[:order_by] = value
+        # TODO: может, вообще не использовать?
+        warning "Unimplemented on cache: #{ key } => #{ value }."
+      when :only_id
+        api_params[:only_id] = value
+        # TODO: может, вообще не использовать?
+        warning "Unimplemented on cache: #{ key } => #{ value }."
       end
     end
     [ api_params, db_params, r_params ]

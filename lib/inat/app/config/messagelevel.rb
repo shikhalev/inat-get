@@ -1,50 +1,22 @@
 # frozen_string_literal: true
 
-require 'logger'
+require 'extra/enum'
 
-module MessageLevel
+class MessageLevel < Enum
 
-  UNKNOWN = :UNKNOWN
-  FATAL   = :FATAL
-  ERROR   = :ERROR
-  WARNING = :WARNING
-  INFO    = :INFO
-  DEBUG   = :DEBUG
-  WARN = WARNING
+  item :TRACE, -1
+  item :DEBUG,   data: 0
+  item :INFO,    data: 1
+  item :WARNING, data: 2
+  item :ERROR,   data: 3
+  item :FATAL,   data: 4
+  item :UNKNOWN, data: 5
 
-  class << self
+  item_alias :WARN => :WARNING
 
-    def parse level
-      lvl = level.to_s.upcase.intern
-      case lvl
-      when :INFO, :DEBUG, :WARNING, :ERROR, :FATAL, :UNKNOWN
-        lvl
-      when :WARN
-        :WARNING
-      else
-        raise TypeError, "Unknown message level: #{level.inspect}!"
-      end
-    end
-
-    def severity level
-      case parse(level)
-      when MessageLevel::UNKNOWN
-        Logger::Severity::UNKNOWN
-      when MessageLevel::FATAL
-        Logger::Severity::FATAL
-      when MessageLevel::ERROR
-        Logger::Severity::ERROR
-      when MessageLevel::WARNING
-        Logger::Severity::WARN
-      when MessageLevel::INFO
-        Logger::Severity::INFO
-      when MessageLevel::DEBUG
-        Logger::Severity::DEBUG
-      else
-        raise ArgumentError, "Unknown message level: #{level.inspect}!"
-      end
-    end
-
+  def severity
+    self.data
   end
 
+  freeze
 end

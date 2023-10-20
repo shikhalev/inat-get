@@ -51,11 +51,11 @@ class Application
     opts = OptionParser::new USAGE do |o|
 
       o.accept UpdateMode do |mode|
-        UpdateMode::parse mode
+        UpdateMode::parse mode, case_sensitive: false
       end
 
       o.accept MessageLevel do |level|
-        MessageLevel::parse level
+        MessageLevel::parse level, case_sensitive: false
       end
 
       o.accept ShiftAge do |shift_age|

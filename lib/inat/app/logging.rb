@@ -4,8 +4,6 @@ require 'logger'
 
 class DualLogger
 
-  attr_reader :config
-
   def config
     @application.config
   end
@@ -13,12 +11,12 @@ class DualLogger
   def initialize application
     @application = application
     v_para = {
-      level: MessageLevel::severity(config[:verbose])
+      level: config[:verbose].severity
     }
     @verb = Logger::new STDERR, **v_para
     if config[:log][:enable]
       f_para = {
-        level: MessageLevel::severity(config[:log][:level]),
+        level: config[:log][:level].severity,
       }
       f_para[:shift_age] = config[:log][:shift][:age] if config[:log][:shift][:age]
       f_para[:shift_level] = config[:log][:shift][:level] if config[:log][:shift][:level]
@@ -28,10 +26,10 @@ class DualLogger
     end
   end
 
-  def log task, severity, message
+  def log task, lebel, message
     task = task.name if task.respond_to?(:name)
-    @verb.log(MessageLevel::severity(severity), message, task)
-    @file.log(MessageLevel::severity(severity), message, task) if @file
+    @verb.log(level.severity, message, task)
+    @file.log(level.severity, message, task) if @file
   end
 
 end

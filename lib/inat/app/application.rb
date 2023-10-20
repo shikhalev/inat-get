@@ -10,8 +10,6 @@ class Application
 
   include AppPreamble
 
-  attr_reader :logger
-
   def logger
     G.logger
   end

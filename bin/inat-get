@@ -1,7 +1,8 @@
-#!/usr/bin/ruby
+#!/usr/bin/ruby -w
 
 require 'pp'
-require 'yaml'
+# require 'yaml'
+# require 'time'
 
 require 'inat/app/application'
 # require 'inat/logging'
@@ -16,6 +17,7 @@ app = Application.new
 # puts YAML.dump(app.config)
 PP::pp app, $>, 64
 
+# p MessageLevel.map { |v| { v.name => [ v.order, v.data ] } }
 
 # app.run
 

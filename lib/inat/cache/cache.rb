@@ -2,8 +2,6 @@
 
 class Cache
 
-  attr_reader :config, :logger
-
   def config
     @application.config
   end
