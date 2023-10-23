@@ -83,10 +83,10 @@ class Model
         kind: :field,
         type: type,
       }
-      @fields[name][:id_name] = id_name unless id_name.nil?
-      @fields[name][:required] = required unless required.nil?
-      @fields[name][:index] = index unless index.nil?
-      @fields[name][:unique] = unique unless unique.nil?
+      @fields[name][:id_name]     = id_name     unless id_name.nil?
+      @fields[name][:required]    = required    unless required.nil?
+      @fields[name][:index]       = index       unless index.nil?
+      @fields[name][:unique]      = unique      unless unique.nil?
       @fields[name][:primary_key] = primary_key unless primary_key.nil?
       @fields[name]
     end

@@ -25,7 +25,13 @@ class Enum
       @values << value
       @by_name[name] = value
       @by_order[order] = value
-      self.const_set name, value
+      const_name = if name[0] != name[0].upcase
+        name.upcase
+      else
+        name
+      end
+      const_name = const_name.to_s.gsub '-', '_'
+      self.const_set const_name, value
       return value
     end
 
@@ -47,7 +53,13 @@ class Enum
         raise TypeError, "Alias value must be a Symbol or #{ self.name }!", caller unless self === value
         @aliases[name] = value
         @by_name[name] = value
-        self.const_set name, value
+        const_name = if name[0] != name[0].upcase
+          name.upcase
+        else
+          name
+        end
+        const_name = const_name.to_s.gsub '-', '_'
+        self.const_set const_name, value
       end
       return aliases
     end
@@ -140,7 +152,16 @@ class Enum
   end
 
   def inspect
-    "#{ self.class.name }::#{ @name }"
+    const_name = @name
+    add = ''
+    if @name[0] != @name[0].upcase
+      const_name = "#{@name.upcase}"
+      add = " = #{ @name.inspect }"
+    end
+    add += " @data=#{ @data.inspect }" if @data
+    add += " @description=#{ @description.inspect }" if @description
+    const_name = const_name.to_s.gsub '-', '_'
+    "\#<#{ self.class.name }::#{ const_name }#{ add }>"
   end
 
   include Comparable

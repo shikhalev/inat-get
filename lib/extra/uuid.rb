@@ -87,11 +87,3 @@ class UUID
   end
 
 end
-
-class Integer
-
-  def to_uuid
-    UUID::make self
-  end
-
-end

@@ -28,5 +28,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = [ "lib" ]
 
   spec.add_dependency "sqlite3", "~> 1.6.6"
+  spec.add_dependency "tzinfo", "~> 2.0.6"
 
 end

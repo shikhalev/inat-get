@@ -2,7 +2,7 @@
 
 require 'pp'
 
-require 'extra/uuid'
+# require 'extra/enum'
 
 require 'inat/app/application'
 
@@ -10,12 +10,51 @@ app = Application.new
 
 PP::pp app, $>, 64
 
-pp [
-  UUID::make(1,2,3,4,5),
-  UUID::make(1,2,3,5),
-  UUID::make(1,2,5),
-  UUID::make(1,5),
-  UUID::make(5),
+# require 'inat/data/entity'
 
-  1022.to_uuid
- ]
+# class Ololo < Entity
+
+#   field :balala, type: String
+
+# end
+
+# class Lalala < Entity
+
+#   field :ololo, type: Ololo
+
+#   links :ololos, item_type: Ololo
+
+# end
+
+# # PP::pp Ololo::fields, $>, 64
+
+# PP::pp Lalala::instance_methods, $>, 64
+
+@mutex = Mutex::new
+
+def update &block
+  raise ArgumentError, "Block is required!", caller unless block_given?
+  result = nil
+  exception = nil
+  @mutex.synchronize do
+    begin
+      result = block.call
+    rescue Exception => e
+      exception = e
+    end
+  end
+  raise exception.class, exception.message, caller, cause: exception if exception
+  result
+end
+
+res = update do
+  :ololo
+end
+
+p res
+
+res = update do
+  raise "Lalala"
+end
+
+p res
