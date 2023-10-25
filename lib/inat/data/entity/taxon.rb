@@ -7,7 +7,10 @@ require_relative '../entity'
 require_relative '../enums/rank'
 require_relative '../enums/iconictaxa'
 
+require_relative 'photo'
+
 autoload :Observation, 'inat/data/entity/observation'
+# autoload :Photo,       'inat/data/entity/photo'
 
 class Taxon < Entity
 
@@ -38,6 +41,7 @@ class Taxon < Entity
   field :wikipedia_url, type: URI
   field :wikipedia_summary, type: String
   field :iconic_taxon_name, type: IconicTaxa, index: true
+  # field :iconic_taxon, type: Taxon, index: true
   field :preferred_common_name, type: String
   field :english_common_name, type: String
   field :vision, type: Boolean
@@ -54,6 +58,10 @@ class Taxon < Entity
   ignore :conservation_statuses
   ignore :conservation_status
   ignore :listed_taxa
+  ignore :complete_rank
+
+  ignore :ancestry                            # NEED: сделать обязательно
+  ignore :min_species_ancestry
 
   def === other
     other.id == self.id || other.ancestor_ids.include?(self.id)

@@ -209,12 +209,19 @@ module URI
 
   class << self
 
-    # def parse src
-    #   return nil if src == nil
-    #   return src if URI === src
-    #   return URI(src) if String === src
-    #   raise TypeError, "Source must be a String!", caller
-    # end
+    pre_verbose = $VERBOSE
+    $VERBOSE = nil
+
+    alias :std_parse :parse
+
+    def parse src
+      return nil if src == nil
+      return src if URI === src
+      return std_parse(src) if String === src
+      raise TypeError, "Source must be a String!", caller
+    end
+
+    $VERBOSE = pre_verbose
 
     def ddl
       :TEXT
@@ -231,6 +238,14 @@ module URI
 
   def to_db
     to_s
+  end
+
+end
+
+class NilClass
+
+  def to_db
+    nil
   end
 
 end

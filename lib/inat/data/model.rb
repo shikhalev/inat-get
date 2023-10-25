@@ -8,7 +8,7 @@ class Model
 
   class Field
 
-    attr_reader :model, :name, :id_field
+    attr_reader :model, :name, :type, :id_field
 
     def required?
       false
@@ -76,7 +76,9 @@ class Model
           instance_variable_get("@#{ nm }")&.id
         end
         md.define_method "#{ ni }=" do |value|
-          instance_variable_set "@#{ nm }", *tp.fetch(value)
+          vv = tp.fetch(value)
+          vv = [ nil ] if vv.size == 0
+          instance_variable_set "@#{ nm }", *vv
         end
       end
     end
@@ -197,7 +199,7 @@ class Model
       ni = @id_field
       tp = @type
       md.define_method "#{ nm }" do
-        instance_variable_get "@#{ nm }"
+        instance_variable_get("@#{ nm }") || []
       end
       md.define_method "#{ nm }=" do |value|
         value ||= []
@@ -432,8 +434,13 @@ class Model
     @mutex = Mutex::new
   end
 
+  def process?
+    @process
+  end
+
   def update &block
     raise ArgumentError, "Block is required!", caller unless block_given?
+    @process = true
     result = nil
     exception = nil
     @mutex.synchronize do
@@ -443,6 +450,7 @@ class Model
         exception = e
       end
     end
+    @process = false
     raise exception.class, exception.message, caller, cause: exception if exception
     result
   end

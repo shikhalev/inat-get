@@ -26,7 +26,7 @@ class DualLogger
     end
   end
 
-  def log task, lebel, message
+  def log task, level, message
     task = task.name if task.respond_to?(:name)
     @verb.log(level.severity, message, task)
     @file.log(level.severity, message, task) if @file

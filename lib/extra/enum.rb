@@ -167,6 +167,7 @@ class Enum
   include Comparable
 
   def <=> other
+    return nil if !(self.class === other)
     @order <=> other.order
   end
 

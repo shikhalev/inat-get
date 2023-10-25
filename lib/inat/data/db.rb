@@ -28,7 +28,7 @@ class DB
   end
 
   def execute query, *args
-    @data.execute query, *args
+    @data.execute query, args
   end
 
   def transaction &block

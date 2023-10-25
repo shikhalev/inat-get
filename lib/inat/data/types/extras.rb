@@ -46,11 +46,11 @@ class Enum
   def to_db
     if self.class.any? { |v| Integer === v.data }
       {
-        name: name,
+        name: name.to_s,
         data: data
       }
     else
-      name
+      name.to_s
     end
   end
 

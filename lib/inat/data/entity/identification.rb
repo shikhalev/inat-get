@@ -37,5 +37,6 @@ class Identification < Entity
 
   ignore :taxon_change                    # TODO: разобраться
   ignore :moderator_actions
+  ignore :created_at_details
 
 end

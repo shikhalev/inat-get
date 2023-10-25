@@ -27,20 +27,20 @@ module API
       end
       result = []
       @mutex ||= Mutex::new
-      @mudex.synchronize do
+      @mutex.synchronize do
         now = Time::new
         if @last_call && now - @last_call < FREQUENCY_LIMIT
           sleep FREQUENCY_LIMIT - (now - @last_call)
         end
         case path
         when :taxa, :observations
-          url = G.config[:api][:root] + path + "?id=#{ ids.join(',') }"
+          url = G.config[:api][:root] + path.to_s + "?id=#{ ids.join(',') }"
           locale = G.config[:api][:locale]
           url += "&locale=#{ locale }" if locale
           preferred_place_id = G.config[:api][:preferred_place_id]
           url += "&preferred_place_id=#{ preferred_place_id }" if preferred_place_id
         else
-          url = G.config[:api][:root] + path + "/#{ ids.join(',') }"
+          url = G.config[:api][:root] + path.to_s + "/#{ ids.join(',') }"
         end
         uri = URI(url)
         https = uri.scheme == 'https'
@@ -115,6 +115,11 @@ module API
       end
       result += query path, **rest if rest
       result
+    end
+
+    def load_file filename
+      data = JSON.parse File.read(filename)
+      data['results']
     end
 
   end

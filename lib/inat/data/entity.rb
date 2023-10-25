@@ -13,6 +13,8 @@ class Entity < Model
 
   class << self
 
+    include LogDSL
+
     def inherited sub
       sub.send :init
       DDL << sub
@@ -24,13 +26,13 @@ class Entity < Model
       @mutex = Mutex::new
     end
 
-    private def update &block
+    private def update
       raise ArgumentError, "Block is required!", caller unless block_given?
       result = nil
       exception = nil
       @mutex.synchronize do
         begin
-          result = block.call
+          result = yield
         rescue Exception => e
           exception = e
         end
@@ -40,6 +42,7 @@ class Entity < Model
     end
 
     private def get id
+      return nil if id == nil
       update do
         @entities ||= {}
         @entities[id] ||= new id
@@ -49,13 +52,14 @@ class Entity < Model
 
     def fetch *ids
       return [] if ids.empty?
-      result = ids.map { |id| get id }
-      nc_ids = result.select { |e| !e.complete? }.map(&:id)
+      result = ids.map { |id| get id }.filter { |x| x != nil }
+      nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
       read(*nc_ids)
-      nc_ids = result.select { |e| !e.complete? }.map(&:id)
+      nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
       load(*nc_ids)
-      nc_ids = result.select { |e| !e.complete? }.map(&:id)
+      nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
       warning "Some IDs were not fetched: #{ ids.join(', ') }!" unless nc_ids.empty?
+      # result = [ nil ] if result == []
       result
     end
 
@@ -79,11 +83,11 @@ class Entity < Model
                 entity.send "#{ name }=", value
               end
             when :links
-              ids = DB.execute "SELECT #{ field.link_field } FROM #{ field.table_name } WHERE #{ field.back_field } = ?", entity.id
+              ids = DB.execute("SELECT #{ field.link_field } FROM #{ field.table_name } WHERE #{ field.back_field } = ?", entity.id).map { |x| x[field.link_field.to_s] }
               entity.send "#{ field.id_field }=", ids
             when :backs
               # TODO: подумать над тем, чтобы сразу загрузить: вынести парсинг отдельно...
-              ids = DB.execute "SELECT id FROM #{ field.type.table } WHERE #{ field.back_field } = ?", entity.id
+              ids = DB.execute("SELECT id FROM #{ field.type.table } WHERE #{ field.back_field } = ?", entity.id).map { |x| x['id'] }
               entity.send "#{ field.id_field }=", ids
             end
           end
@@ -94,14 +98,25 @@ class Entity < Model
     end
 
     def load *ids
-      return [] unless ids.empty? || @path.nil?
+      return [] if ids.empty? || @path.nil?
       data = API.get @path, *ids
+      data.map { |obj| parse obj }
+    end
+
+    def load_file filename
+      data = API.load_file filename
       data.map { |obj| parse obj }
     end
 
     def parse src
       return nil if src == nil
-      raise TypeError, "Source must be a Hash!" unless Hash === src
+      # FIXME: откуда-то берутся левые значения
+      # raise TypeError, "Source must be a Hash! (#{ src.inspect })" unless Hash === src
+      if !(Hash === src)
+        puts "INVALID SOURCE for #{ self }: #{ src.inspect }"
+        pp caller[..2]
+        return nil
+      end
       id = src[:id] || src['id']
       raise ArgumentError, "Source must have an Integer 'id' value!", caller unless Integer === id
       fields = self.fields
@@ -109,12 +124,18 @@ class Entity < Model
       entity.update do
         src.each do |key, value|
           key = key.intern if String === key
-          field = fields[key]
-          raise ArgumentError, "Field not found: '#{ key }'!", caller unless field
+          field = fields[key] || fields.values.find { |f| f.id_field == key }
+          raise ArgumentError, "Field not found in #{ self.name }: '#{ key }'!", caller unless field
           if field.write?
-            unless field.type === value
-              if field.type.respond_to?(:parse)
-                value = field.type.parse(value)
+            unless (field.type === value) || (field.id_field == key && Integer === value)
+              if field.id_field == key
+                # do nothing
+              elsif field.type.respond_to?(:parse)
+                if Array === value
+                  value = value.map { |v| field.type.parse(v) }
+                else
+                  value = field.type.parse(value)
+                end
               else
                 raise TypeError, "Invalid '#{ key }' value type: #{ value.inspect }!", caller
               end
@@ -135,12 +156,12 @@ class Entity < Model
   field :id, type: Integer, primary_key: true
 
   def initialize id
-    super
+    super()
     self.id = id
   end
 
   def complete?
-    self.class.fields.select { |f| f.required? }.all? { |f| send(f.name) != nil }
+    self.class.fields.values.select { |f| f.required? }.all? { |f| send(f.name) != nil }
   end
 
   def save
@@ -149,33 +170,33 @@ class Entity < Model
     links = []
     backs = []
     update do
-      fields.each do |_, field|
+      self.class.fields.each do |_, field|
         case field.kind
         when :value
           name, value = field.to_db self.send(field.name)
           if name != nil && value != nil
-            names += name
-            values += value
+            names << name
+            values << value
           end
         when :links
-          links << { field: field, values: self.send(field.name) } if field.owned
+          links << { field: field, values: self.send(field.name) } if field.owned?
         when :backs
-          backs << { field: field, values: self.send(field.name) } if field.owned
+          backs << { field: field, values: self.send(field.name) } if field.owned?
         end
       end
     end
     names = names.flatten
     values = values.flatten
-    DB.transaction do |db|
-      db.execute "INSERT OR REPLACE INTO #{ self.table } (#{ names.join(',') }) VALUES (#{ (['?'] * 3).join(',') });", *values
+    # DB.transaction do |db|
+      DB.execute "INSERT OR REPLACE INTO #{ self.class.table } (#{ names.join(',') }) VALUES (#{ (['?'] * values.size).join(',') });", *values
       links.each do |link|
         field = link[:field]
         values = link[:values]
         values.each do |value|
           value.save
-          db.execute "INSERT OR REPLACE INTO #{ field.table_name } (#{ field.back_field }, #{ field.link_field }) VALUES (?, ?);", self.id, value.id
+          DB.execute "INSERT OR REPLACE INTO #{ field.table_name } (#{ field.back_field }, #{ field.link_field }) VALUES (?, ?);", self.id, value.id
         end
-        db.execute "DELETE FROM #{ field.table_name } WHERE #{ field.back_field } = ? AND #{ field.link_field } NOT IN (#{ (['?'] * values.size).join(',') });",
+        DB.execute "DELETE FROM #{ field.table_name } WHERE #{ field.back_field } = ? AND #{ field.link_field } NOT IN (#{ (['?'] * values.size).join(',') });",
                     self.id, *values.map(&:id)
       end
       backs.each do |back|
@@ -185,10 +206,11 @@ class Entity < Model
           value.send "#{ field.back_field }=", self.id
           value.save
         end
-        db.execute "SELETE FROM #{ field.type.table } WHERE #{ field.back_field } = ? AND id NOT IN (#{ (['?'] * values.size).join(',') });",
+        DB.execute "DELETE FROM #{ field.type.table } WHERE #{ field.back_field } = ? AND id NOT IN (#{ (['?'] * values.size).join(',') });",
                     self.id, *values.map(&:id)
       end
-    end
+    # end
+    self
   end
 
   def to_db

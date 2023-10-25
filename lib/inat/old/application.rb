@@ -189,7 +189,6 @@ class Application
       end
 
       o.on '-l', '--log [FILE]', String, 'Enable logging to file and set log filename.', 'Default is "./‹task_name›.log".' do |file|
-        pp [file, file.class]
         if file == true || file.nil? || file.empty?
           @config[:log][:file] = :default
           @config[:log][:enable] = true

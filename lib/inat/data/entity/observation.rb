@@ -82,5 +82,25 @@ class Observation < Entity
   ignore :observed_time_zone
   ignore :time_zone_offset
   ignore :geojson
+  ignore :annotations
+  ignore :observed_on_details
+  ignore :created_at_details
+  ignore :cached_votes_total
+  ignore :comments_count
+  ignore :site_id
+  ignore :quality_metrics
+  ignore :reviewed_by
+  ignore :oauth_application_id
+  ignore :project_ids_with_curator_id
+  ignore :place_ids
+  ignore :outlinks             # NEED
+  ignore :faves_count
+  ignore :ofvs
+  ignore :preferences
+  ignore :map_scale
+  ignore :identifications_count
+  ignore :project_ids_without_curator_id
+  ignore :project_observations  # TODO: ???
+  ignore :non_owner_ids
 
 end

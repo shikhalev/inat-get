@@ -6,10 +6,15 @@ require 'pp'
 
 require 'inat/app/application'
 require 'inat/data/entity/observation'
+require 'inat/data/db'
 
-# app = Application.new
+app = Application.new
 
-# PP::pp app, $>, 64
+PP::pp app, $>, 64
 
-puts
-puts DDL.DDL
+# puts
+# puts DDL.DDL
+
+# PP::pp DB::instance, $>, 64
+
+PP::pp Observation::load_file('o2.json').size, $>, 64
