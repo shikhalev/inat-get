@@ -24,6 +24,7 @@ class Application
     },
     data: {
       cache: true,
+      directory: File.expand_path("~/.cache/#{ NAME }/"),
       update: UpdateMode::UPDATE,
       update_period: Period::DAY,
       obsolete_period: Period::WEEK,
@@ -155,6 +156,11 @@ class Application
       o.on '--obsolete-period PERIOD', Period, 'Obsolete period.' do |value|
         options[:data] ||= {}
         options[:data][:obsolete_period] = value
+      end
+
+      o.on '--cache-directory PATH', String, 'Cache directory path.' do |value|
+        options[:data] ||= {}
+        options[:data][:directory] = value
       end
 
       o.separator ''

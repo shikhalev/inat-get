@@ -16,6 +16,7 @@ class Application
 
   def initialize
     setup!
+    G.config = @config.freeze
     G.logger = DualLogger::new self
     @cache = Cache::new self
   end

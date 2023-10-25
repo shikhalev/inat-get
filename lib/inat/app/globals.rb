@@ -20,6 +20,14 @@ module Globals
       Thread.current.thread_variable_set 'current_task', value
     end
 
+    def config
+      @@config
+    end
+
+    def config= value
+      @@config = value
+    end
+
   end
 
 end

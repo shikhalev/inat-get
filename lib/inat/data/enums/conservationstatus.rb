@@ -24,7 +24,6 @@ class CS < Enum
              :extinct_in_the_wild   => :EW,
              :extinct               => :EX
 
-
   freeze
 end
 

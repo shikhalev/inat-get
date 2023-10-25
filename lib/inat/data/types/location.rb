@@ -19,6 +19,10 @@ class Location
       end
     end
 
+    def from_db src
+      new(src[:latitude] || src['latitude'], src[:longitude] || src['longitude']).freeze
+    end
+
     def ddl
       {
         latitude: :REAL,
@@ -35,6 +39,13 @@ class Location
     raise ArgumentError, "Longitude must be a Numeric!", caller unless Numeric === longitude
     @latitude = latitude
     @longitude = longitude
+  end
+
+  def to_db
+    {
+      latitude: latitude,
+      longitude: longitude
+    }
   end
 
 end

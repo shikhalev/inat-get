@@ -10,6 +10,10 @@ class Model
 
     attr_reader :model, :name, :id_field
 
+    def required?
+      false
+    end
+
     def initialize model, name, type, id_field
       @model = model
       @name = name
@@ -21,11 +25,27 @@ class Model
       [ [], [] ]
     end
 
+    def from_db row
+      [ nil, nil ]
+    end
+
+    def to_db value
+      [ nil, nil ]
+    end
+
+    def kind
+      nil
+    end
+
   end
 
   class ScalarField < Model::Field
 
-    attr_reader :required, :index, :unique, :primary_key
+    attr_reader :index, :unique, :primary_key
+
+    def required?
+      @required
+    end
 
     def initialize model, name, type, id_field, required, index, unique, primary_key
       if Class === type && Entity > type && id_field == nil
@@ -100,11 +120,59 @@ class Model
       [ inner, outer ]
     end
 
+    def from_db row
+      ddl_name = @id_field || @name
+      type_ddl = @type.ddl
+      value = nil
+      case type_ddl
+      when String, Symbol
+        value = row[ddl_name]
+        value = @type.from_db value unless @id_field || @type === value
+      when Hash
+        value = {}
+        type_ddl.each do |k, v|
+          value[k] = row["#{ ddl_name }_#{k}"]
+        end
+        value = @type.from_db value
+      else
+        raise TypeError, "Invalid type DDL: #{ type_ddl.inspect }!", caller
+      end
+      [ ddl_name, value ]
+    end
+
+    def to_db value
+      ddl_name = @id_field || @name
+      type_ddl = @type.ddl
+      case type_ddl
+      when String, Symbol
+        [ ddl_name, value.to_db ]
+      when Hash
+        keys = []
+        values = []
+        hash = value.to_db
+        hash.each do |k, v|
+          keys << "#{ ddl_name }_#{ k }"
+          values << v
+        end
+        [ keys, values ]
+      else
+        raise TypeError, "Invalid type DDL: #{ type_ddl.inspect }!", caller
+      end
+    end
+
+    def kind
+      :value
+    end
+
   end
 
   class ArrayField < Model::Field
 
-    attr_reader :owned, :back_field
+    attr_reader :back_field
+
+    def owned?
+      @owned
+    end
 
     def initialize model, name, type, id_field, owned, back_field
       if id_field == nil
@@ -189,9 +257,17 @@ class Model
       [ [], outer ]
     end
 
+    def kind
+      :links
+    end
+
   end
 
   class OneToManyField < Model::ArrayField
+
+    def kind
+      :backs
+    end
 
   end
 
