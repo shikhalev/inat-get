@@ -10,6 +10,18 @@ class Sound < Entity
 
   table :sounds
 
-  # NEED: implement
+  field :license_code, type: LicenseCode, index: true
+  field :attribution, type: String
+  field :file_url, type: URI
+  field :file_content_type, type: Symbol, index: true
+  field :play_local, type: Boolean
+  field :subtype, type: Symbol, index: true
+  field :hidden, type: Boolean, index: true
+
+  links :flags, item_type: Flag
+
+  ignore :native_sound_id       # TODO: разобраться
+  ignore :secret_token
+  ignore :moderator_actions
 
 end

@@ -106,13 +106,15 @@ class Model
         end
       when Hash
         inner = []
+        names = []
         type_ddl.each do |k, v|
           inner << "  #{ ddl_name }_#{ k } #{ v }"
+          names << "#{ ddl_name }_#{ k }"
         end
         if @unique
-          outer << "CREATE UNIQUE INDEX IF NOT EXISTS uq_#{ @model.table }_#{ ddl_name } ON #{ @model.table } (#{ type_ddl.keys.map(&:to_s).join(',') });"
+          outer << "CREATE UNIQUE INDEX IF NOT EXISTS uq_#{ @model.table }_#{ ddl_name } ON #{ @model.table } (#{ names.join(',') });"
         elsif @index
-          outer << "CREATE INDEX IF NOT EXISTS ix_#{ @model.table }_#{ ddl_name } ON #{ @model.table } (#{ type_ddl.keys.map(&:to_s).join(',') });"
+          outer << "CREATE INDEX IF NOT EXISTS ix_#{ @model.table }_#{ ddl_name } ON #{ @model.table } (#{ names.join(',') });"
         end
       else
         raise TypeError, "Invalid type DDL: #{ type_ddl.inspect }", caller
