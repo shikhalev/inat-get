@@ -50,7 +50,7 @@ class UUID
     end
 
     def make *args
-      raise ArgumentError, "Method receives 1..5 arguments!", caller unless 1..5 === args.size
+      raise ArgumentError, "Method receives 1..5 arguments!", caller unless (1..5) === args.size
       raise ArgumentError, "Arguments must be Integers!", caller     unless args.all? { |a| Integer === a }
       last = args.pop
       value = 0

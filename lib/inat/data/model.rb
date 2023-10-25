@@ -96,18 +96,18 @@ class Model
       type_ddl = @type.ddl
       case type_ddl
       when String, Symbol
-        inner = "#{ ddl_name } #{ type_ddl }"
+        inner = "  #{ ddl_name } #{ type_ddl }"
         if @primary_key
           inner += ' NOT NULL PRIMARY KEY'
         elsif @unique
           outer << "CREATE UNIQUE INDEX IF NOT EXISTS uq_#{ @model.table }_#{ ddl_name } ON #{ @model.table } (#{ ddl_name });"
         elsif @index
-          outer << "CREATE INDEX IF NOT EXISTS uq_#{ @model.table }_#{ ddl_name } ON #{ @model.table } (#{ ddl_name });"
+          outer << "CREATE INDEX IF NOT EXISTS ix_#{ @model.table }_#{ ddl_name } ON #{ @model.table } (#{ ddl_name });"
         end
       when Hash
         inner = []
         type_ddl.each do |k, v|
-          inner << "#{ ddl_name }_#{ k } #{ v }"
+          inner << "  #{ ddl_name }_#{ k } #{ v }"
         end
         if @unique
           outer << "CREATE UNIQUE INDEX IF NOT EXISTS uq_#{ @model.table }_#{ ddl_name } ON #{ @model.table } (#{ type_ddl.keys.map(&:to_s).join(',') });"
@@ -191,7 +191,7 @@ class Model
     def implement
       nm = @name
       md = @model
-      rq = @required
+      # rq = @required
       ni = @id_field
       tp = @type
       md.define_method "#{ nm }" do
@@ -244,7 +244,7 @@ class Model
     def DDL
       outer = []
       if @owned
-        outer << "CREATE TABLE IF NOT EXISTS #{ @table_name } (\n" +
+        outer << "\nCREATE TABLE IF NOT EXISTS #{ @table_name } (\n" +
                  "  #{ back_field } INTEGER NOT NULL REFERENCES #{ @model.table } (id),\n" +
                  "  #{ link_field } INTEGER NOT NULL REFERENCES #{ @type.table } (id),\n" +
                  "  PRIMARY KEY (#{ back_field }, #{ link_field })\n" +
@@ -421,7 +421,7 @@ class Model
         inner << i
         outer << o
       end
-      "CREATE TABLE IF NOT EXISTS #{ @model.table } (\n#{ inner.flatten.join(",\n") }\n);\n" + "#{ outer.flatten.join("\n") }\n\n"
+      "CREATE TABLE IF NOT EXISTS #{ @table } (\n#{ inner.flatten.join(",\n") }\n);\n" + "#{ outer.flatten.join("\n") }\n\n"
     end
 
   end

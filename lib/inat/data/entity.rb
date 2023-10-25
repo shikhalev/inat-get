@@ -51,9 +51,9 @@ class Entity < Model
       return [] if ids.empty?
       result = ids.map { |id| get id }
       nc_ids = result.select { |e| !e.complete? }.map(&:id)
-      read *nc_ids
+      read(*nc_ids)
       nc_ids = result.select { |e| !e.complete? }.map(&:id)
-      load *nc_ids
+      load(*nc_ids)
       nc_ids = result.select { |e| !e.complete? }.map(&:id)
       warning "Some IDs were not fetched: #{ ids.join(', ') }!" unless nc_ids.empty?
       result
@@ -95,7 +95,7 @@ class Entity < Model
 
     def load *ids
       return [] unless ids.empty? || @path.nil?
-      data = API.get @path *ids
+      data = API.get @path, *ids
       data.map { |obj| parse obj }
     end
 
@@ -181,7 +181,10 @@ class Entity < Model
       backs.each do |back|
         field = back[:field]
         values = back[:values]
-        values.each &:save
+        values.each do |value|
+          value.send "#{ field.back_field }=", self.id
+          value.save
+        end
         db.execute "SELETE FROM #{ field.type.table } WHERE #{ field.back_field } = ? AND id NOT IN (#{ (['?'] * values.size).join(',') });",
                     self.id, *values.map(&:id)
       end

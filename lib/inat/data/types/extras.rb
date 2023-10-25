@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
 require 'extra/enum'
+require 'extra/uuid'
 
 class Enum
 
   class << self
+
+    pre_verbose = $VERBOSE
+    $VERBOSE = nil
 
     def parse src
       return nil if src == nil
@@ -16,6 +20,8 @@ class Enum
         self[src.intern]
       end
     end
+
+    $VERBOSE = pre_verbose
 
     def ddl
       if any? { |v| Integer === v.data }
@@ -46,6 +52,26 @@ class Enum
     else
       name
     end
+  end
+
+end
+
+class UUID
+
+  class << self
+
+    def ddl
+      :TEXT
+    end
+
+    def from_db src
+      parse src
+    end
+
+  end
+
+  def to_db
+    to_s
   end
 
 end

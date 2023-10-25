@@ -33,7 +33,7 @@ class DB
 
   def transaction &block
     raise ArgumentError, "Block is required?", caller unless block_given?
-    @data.transaction &block
+    @data.transaction(&block)
   end
 
   class << self
@@ -48,7 +48,7 @@ class DB
     end
 
     def transaction &block
-      instance.transaction &block
+      instance.transaction(&block)
     end
 
   end

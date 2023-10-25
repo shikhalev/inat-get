@@ -5,11 +5,11 @@ require 'pp'
 # require 'extra/enum'
 
 require 'inat/app/application'
+require 'inat/data/entity/observation'
 
-app = Application.new
+# app = Application.new
 
-PP::pp app, $>, 64
+# PP::pp app, $>, 64
 
-a = []
-
-p [ a.size, a.length ]
+puts
+puts DDL.DDL

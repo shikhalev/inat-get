@@ -2,6 +2,7 @@
 
 require 'time'
 require 'date'
+require 'uri'
 
 class Integer
 
@@ -116,7 +117,7 @@ class Time
       raise TypeError, "Source must be a String!", caller
     end
 
-    def self.ddl
+    def ddl
       :INTEGER
     end
 
@@ -163,6 +164,73 @@ class Date
 
   def to_db
     to_time.to_i
+  end
+
+end
+
+module Boolean
+
+  class << self
+
+    def parse src
+      return nil if src == nil
+      return src if Boolean === src
+      raise TypeError, "Source must be a Boolean!", caller
+    end
+
+    def ddl
+      :INTEGER
+    end
+
+    def from_db src
+      return nil if src == nil
+      return src if Boolean === src
+      return src != 0 if Integer === src
+      raise TypeError, "Source must be an Integer!", caller
+    end
+
+  end
+
+  def to_db
+    self && 1 || 0
+  end
+
+end
+
+class TrueClass
+  include Boolean
+end
+
+class FalseClass
+  include Boolean
+end
+
+module URI
+
+  class << self
+
+    # def parse src
+    #   return nil if src == nil
+    #   return src if URI === src
+    #   return URI(src) if String === src
+    #   raise TypeError, "Source must be a String!", caller
+    # end
+
+    def ddl
+      :TEXT
+    end
+
+    def from_db src
+      return nil if src == nil
+      return src if URI === src
+      return URI(src) if String === src
+      raise TypeError, "Source must be a String!", caller
+    end
+
+  end
+
+  def to_db
+    to_s
   end
 
 end
