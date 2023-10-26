@@ -64,21 +64,33 @@ class Model
       rq = @required
       ni = @id_field
       tp = @type
-      md.define_method "#{ nm }" do
-        instance_variable_get "@#{ nm }"
-      end
-      md.define_method "#{ nm }=" do |value|
-        raise TypeError, "Invalid '#{ nm }' value: #{ value.inspect }!", caller unless tp === value || (value == nil && !rq)
-        instance_variable_set "@#{ nm }", value
-      end
       if ni
         md.define_method "#{ ni }" do
-          instance_variable_get("@#{ nm }")&.id
+          instance_variable_get("@#{ ni }")
         end
         md.define_method "#{ ni }=" do |value|
-          vv = tp.fetch(value)
-          vv = [ nil ] if vv.size == 0
-          instance_variable_set "@#{ nm }", *vv
+          instance_variable_set "@#{ ni }", value
+        end
+        md.define_method "#{ nm }" do
+          v = instance_variable_get("@#{ ni }")
+          return nil if v == nil
+          r = tp.fetch v
+          if r.size == 0
+            nil
+          else
+            r.first
+          end
+        end
+        md.define_method "#{ nm }=" do |value|
+          instance_variable_set "@#{ ni }", value&.id
+        end
+      else
+        md.define_method "#{ nm }" do
+          instance_variable_get "@#{ nm }"
+        end
+        md.define_method "#{ nm }=" do |value|
+          raise TypeError, "Invalid '#{ nm }' value: #{ value.inspect }!", caller unless tp === value || (value == nil && !rq)
+          instance_variable_set "@#{ nm }", value
         end
       end
     end
@@ -130,7 +142,7 @@ class Model
       value = nil
       case type_ddl
       when String, Symbol
-        value = row[ddl_name]
+        value = row[ddl_name.to_s]
         value = @type.from_db value unless @id_field || @type === value
       when Hash
         value = {}
@@ -153,10 +165,17 @@ class Model
       when Hash
         keys = []
         values = []
-        hash = value.to_db
-        hash.each do |k, v|
-          keys << "#{ ddl_name }_#{ k }"
-          values << v
+        if value != nil
+          hash = value.to_db
+          hash.each do |k, v|
+            keys << "#{ ddl_name }_#{ k }"
+            values << v
+          end
+        else
+          type_ddl.each do |k, _|
+            keys << "#{ ddl_name }_#{ k }"
+            values << nil
+          end
         end
         [ keys, values ]
       else
@@ -198,26 +217,37 @@ class Model
       # rq = @required
       ni = @id_field
       tp = @type
-      md.define_method "#{ nm }" do
-        instance_variable_get("@#{ nm }") || []
-      end
-      md.define_method "#{ nm }=" do |value|
-        value ||= []
-        value.each do |v|
-          raise TypeError, "Invalid #{ nm } value: #{ v.inspect }!", caller unless tp === v
-        end
-        instance_variable_set "@#{ nm }", value
-      end
       if ni
         md.define_method "#{ ni }" do
-          instance_variable_get("@#{ nm }")&.map(&:id)
+          instance_variable_get("@#{ ni }") || []
         end
         md.define_method "#{ ni }=" do |value|
           if value == nil
-            instance_variable_set "@#{ nm }", []
+            instance_variable_set "@#{ ni }", []
           else
-            instance_variable_set "@#{ nm }", tp.fetch(*value)
+            instance_variable_set "@#{ ni }", value
           end
+        end
+        md.define_method "#{ nm }" do
+          tp.fetch(*(instance_variable_get("@#{ ni }") || []))
+        end
+        md.define_method "#{ nm }=" do |value|
+          value ||= []
+          # value.each do |v|
+          #   raise TypeError, "Invalid #{ nm } value: #{ v.inspect }!", caller unless tp === v
+          # end
+          instance_variable_set "@#{ ni }", value.map(&:id)
+        end
+      else
+        md.define_method "#{ nm }" do
+          instance_variable_get("@#{ nm }") || []
+        end
+        md.define_method "#{ nm }=" do |value|
+          value ||= []
+          value.each do |v|
+            raise TypeError, "Invalid #{ nm } value: #{ v.inspect }!", caller unless tp === v
+          end
+          instance_variable_set "@#{ nm }", value
         end
       end
     end
@@ -438,14 +468,19 @@ class Model
     @process
   end
 
-  def update &block
+  def saved?
+    @saved
+  end
+
+  def update
     raise ArgumentError, "Block is required!", caller unless block_given?
     @process = true
+    @saved = false
     result = nil
     exception = nil
     @mutex.synchronize do
       begin
-        result = block.call
+        result = yield
       rescue Exception => e
         exception = e
       end

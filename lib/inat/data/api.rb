@@ -14,6 +14,7 @@ module API
   class << self
 
     def get path, *ids
+      pp [ :GET, path, *ids ]
       return [] if ids.empty?
       if ids.size > RECORDS_LIMIT
         rest = ids.dup
@@ -78,6 +79,7 @@ module API
     end
 
     def query path, **params
+      pp [ :QUERY, path, params ]
       para = params.dup
       para.delete_if { |key, _| key.intern == :page }
       para[:per_page] = RECORDS_LIMIT

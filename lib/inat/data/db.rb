@@ -28,6 +28,7 @@ class DB
   end
 
   def execute query, *args
+    pp [ :EXECUTE, query, args ]
     @data.execute query, args
   end
 

@@ -10,11 +10,11 @@ require 'inat/data/db'
 
 app = Application.new
 
-PP::pp app, $>, 64
+# PP::pp app, $>, 64
 
 # puts
 # puts DDL.DDL
 
 # PP::pp DB::instance, $>, 64
 
-PP::pp Observation::load_file('o2.json').size, $>, 64
+PP::pp Observation::load_file('o2_2.json').first.places, $>, 64

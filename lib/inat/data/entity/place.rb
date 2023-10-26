@@ -30,4 +30,15 @@ class Place < Entity
     self.id == other.id && other.ancestor_place_ids.include?(self.id)
   end
 
+  class << self
+
+    def DDL
+      super +
+      "INSERT OR REPLACE INTO places (id, uuid, name, display_name) VALUES (59614, '00000000-0000-0000-0000-000000000000', 'World', 'Весь мир');\n"
+      # Если верить API, то идентификатор такой есть, а записи для него нет.
+      #   Вставляем ему искусственно некоторые данные для того, чтобы не запрашивать впустую каждый раз, как он встречается.
+    end
+
+  end
+
 end

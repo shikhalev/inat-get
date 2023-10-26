@@ -83,6 +83,7 @@ class UUID
   include Comparable
 
   def <=> other
+    return nil unless UUID === other
     @value <=> other.value
   end
 

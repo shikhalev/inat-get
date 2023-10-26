@@ -92,7 +92,7 @@ class Observation < Entity
   ignore :reviewed_by
   ignore :oauth_application_id
   ignore :project_ids_with_curator_id
-  ignore :place_ids
+  # ignore :place_ids
   ignore :outlinks             # NEED
   ignore :faves_count
   ignore :ofvs

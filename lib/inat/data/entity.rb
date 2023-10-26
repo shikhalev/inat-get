@@ -52,12 +52,16 @@ class Entity < Model
 
     def fetch *ids
       return [] if ids.empty?
+      pp [ :FETCH_0, self, ids ]
       result = ids.map { |id| get id }.filter { |x| x != nil }
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
+      pp [ :FETCH_1, self, nc_ids ]
       read(*nc_ids)
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
+      pp [ :FETCH_2, self, nc_ids ]
       load(*nc_ids)
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
+      pp [ :FETCH_3, self, nc_ids ]
       warning "Some IDs were not fetched: #{ ids.join(', ') }!" unless nc_ids.empty?
       # result = [ nil ] if result == []
       result
@@ -144,7 +148,7 @@ class Entity < Model
           end
         end
       end
-      entity
+      entity.save
     end
 
     def ddl
@@ -161,15 +165,19 @@ class Entity < Model
   end
 
   def complete?
-    self.class.fields.values.select { |f| f.required? }.all? { |f| send(f.name) != nil }
+    fields = self.class.fields.values.select { |f| f.required? }
+    values = fields.map { |f| [ f.name, send(f.name) ] }
+    pp [ :COMPLETE, self.class, self.id, values ]
+    fields.all? { |f| send(f.name) != nil }
   end
 
   def save
+    return self if @saved
     names = []
     values = []
     links = []
     backs = []
-    update do
+    # update do
       self.class.fields.each do |_, field|
         case field.kind
         when :value
@@ -184,7 +192,7 @@ class Entity < Model
           backs << { field: field, values: self.send(field.name) } if field.owned?
         end
       end
-    end
+    # end
     names = names.flatten
     values = values.flatten
     # DB.transaction do |db|
@@ -193,7 +201,7 @@ class Entity < Model
         field = link[:field]
         values = link[:values]
         values.each do |value|
-          value.save
+          value.save if value != self
           DB.execute "INSERT OR REPLACE INTO #{ field.table_name } (#{ field.back_field }, #{ field.link_field }) VALUES (?, ?);", self.id, value.id
         end
         DB.execute "DELETE FROM #{ field.table_name } WHERE #{ field.back_field } = ? AND #{ field.link_field } NOT IN (#{ (['?'] * values.size).join(',') });",
@@ -204,12 +212,13 @@ class Entity < Model
         values = back[:values]
         values.each do |value|
           value.send "#{ field.back_field }=", self.id
-          value.save
+          value.save if value != self
         end
         DB.execute "DELETE FROM #{ field.type.table } WHERE #{ field.back_field } = ? AND id NOT IN (#{ (['?'] * values.size).join(',') });",
                     self.id, *values.map(&:id)
       end
     # end
+    @saved = true
     self
   end
 
