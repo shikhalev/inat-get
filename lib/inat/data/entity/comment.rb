@@ -24,4 +24,6 @@ class Comment < Entity
 
   ignore :moderator_actions      # TODO: разобраться
 
+  ignore :created_at_details
+
 end

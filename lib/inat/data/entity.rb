@@ -52,27 +52,19 @@ class Entity < Model
 
     def fetch *ids
       return [] if ids.empty?
-      pp [ :FETCH_0, self, ids ]
       result = ids.map { |id| get id }.filter { |x| x != nil }
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
-      pp [ :FETCH_1, self, nc_ids ]
       read(*nc_ids)
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
-      pp [ :FETCH_2, self, nc_ids ]
       load(*nc_ids)
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
-      pp [ :FETCH_3, self, nc_ids ]
       warning "Some IDs were not fetched: #{ ids.join(', ') }!" unless nc_ids.empty?
       # result = [ nil ] if result == []
       result
     end
 
-    def read *ids
-      return [] if ids.empty?
-      # check = ids.dup
-      result = []
-      fields = self.fields
-      data = DB.execute "SELECT * FROM #{ self.table } WHERE id IN (#{ (['?'] * ids.size).join(',') })", *ids
+    # TODO: подумать о переименовании
+    def from_db_rows data
       data.each do |row|
         id = row['id'] || row[:id]
         raise TypeError, "Invalid data row: no 'id' field!" unless id
@@ -101,6 +93,15 @@ class Entity < Model
       result
     end
 
+    def read *ids
+      return [] if ids.empty?
+      # check = ids.dup
+      result = []
+      fields = self.fields
+      data = DB.execute "SELECT * FROM #{ self.table } WHERE id IN (#{ (['?'] * ids.size).join(',') })", *ids
+      from_db_rows data
+    end
+
     def load *ids
       return [] if ids.empty? || @path.nil?
       data = API.get @path, *ids
@@ -117,8 +118,7 @@ class Entity < Model
       # FIXME: откуда-то берутся левые значения
       # raise TypeError, "Source must be a Hash! (#{ src.inspect })" unless Hash === src
       if !(Hash === src)
-        puts "INVALID SOURCE for #{ self }: #{ src.inspect }"
-        pp caller[..2]
+        warning "INVALID SOURCE for #{ self }: #{ src.inspect }"
         return nil
       end
       id = src[:id] || src['id']
@@ -136,7 +136,11 @@ class Entity < Model
                 # do nothing
               elsif field.type.respond_to?(:parse)
                 if Array === value
-                  value = value.map { |v| field.type.parse(v) }
+                  if field.kind == :backs
+                    value = value.map { |v| field.type.parse(v.merge(field.back_field => entity.id)) }
+                  else
+                    value = value.map { |v| field.type.parse(v) }
+                  end
                 else
                   value = field.type.parse(value)
                 end
@@ -166,13 +170,13 @@ class Entity < Model
 
   def complete?
     fields = self.class.fields.values.select { |f| f.required? }
-    values = fields.map { |f| [ f.name, send(f.name) ] }
-    pp [ :COMPLETE, self.class, self.id, values ]
+    # values = fields.map { |f| [ f.name, send(f.name) ] }
     fields.all? { |f| send(f.name) != nil }
   end
 
   def save
     return self if @saved
+    @saved = true
     names = []
     values = []
     links = []
@@ -181,7 +185,11 @@ class Entity < Model
       self.class.fields.each do |_, field|
         case field.kind
         when :value
-          name, value = field.to_db self.send(field.name)
+          value = self.send(field.name)
+          if Entity === value && value != self
+            value.save
+          end
+          name, value = field.to_db value
           if name != nil && value != nil
             names << name
             values << value
@@ -218,7 +226,6 @@ class Entity < Model
                     self.id, *values.map(&:id)
       end
     # end
-    @saved = true
     self
   end
 

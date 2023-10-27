@@ -59,12 +59,27 @@ class Project < Entity
   links :included_places, item_type: Place, ids_field: :included_place_ids, table_name: :project_rule_places, owned: false
   links :excluded_places, item_type: Place, ids_field: :excluded_places_ids, table_name: :project_rule_excluded_places, owned: false
 
+  links :observations, item_type: Observation, table_name: :project_observations, owned: false
+
+  ignore :latitude
+  ignore :longitude
+
+  # block :latitude, type: Float do |value|
+  #   @location ||= Location::new nil, nil
+  #   @location.latitude = value
+  # end
+
+  # block :longitude, type: Float do |value|
+  #   @location ||= Location::new nil, nil
+  #   @location.longitude = value
+  # end
+
   # # TODO: разобраться и сделать связи с местами и таксонами
-  # field :project_observation_fields, type: Wrapper
-  # field :site_features, type: Wrapper
-  # field :terms, type: Wrapper
-  # field :search_parameters, type: Wrapper
-  # field :rule_preferences, type: Wrapper
+  ignore :project_observation_fields
+  ignore :site_features
+  ignore :terms
+  ignore :search_parameters
+  ignore :rule_preferences
 
 
 end

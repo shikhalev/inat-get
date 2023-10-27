@@ -429,7 +429,7 @@ class Model
       @fields[name].implement
     end
 
-    private def block name, type, &block
+    private def block name, type: nil, &block
       raise TypeError, "Field name must be a Symbol!", caller unless Symbol === name
       raise TypeError, "Field type must be a Module!", caller unless Module === type
       raise ArgumentError, "Block is required!", caller          unless block_given?

@@ -54,6 +54,10 @@ class Enum
     end
   end
 
+  def to_query
+    to_s
+  end
+
 end
 
 class UUID
@@ -71,6 +75,10 @@ class UUID
   end
 
   def to_db
+    to_s
+  end
+
+  def to_query
     to_s
   end
 

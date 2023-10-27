@@ -14,7 +14,6 @@ module API
   class << self
 
     def get path, *ids
-      pp [ :GET, path, *ids ]
       return [] if ids.empty?
       if ids.size > RECORDS_LIMIT
         rest = ids.dup
@@ -61,14 +60,14 @@ module API
     end
 
     private def make_url path, **params
-      url = G.config[:api][:root] + path
+      url = G.config[:api][:root] + path.to_s
       query = []
       params.each do |key, value|
         query_param = "#{ key }="
         if Array === value
-          query_param += URI.encode_uri_component value.map(&:to_s).join(',')
+          query_param += URI.encode_uri_component value.map(&:to_query).join(',')
         else
-          query_param += URI.encode_uri_component value.to_s
+          query_param += URI.encode_uri_component value.to_query
         end
         query << query_param
       end
@@ -79,7 +78,6 @@ module API
     end
 
     def query path, **params
-      pp [ :QUERY, path, params ]
       para = params.dup
       para.delete_if { |key, _| key.intern == :page }
       para[:per_page] = RECORDS_LIMIT
@@ -88,7 +86,7 @@ module API
       result = []
       rest = nil
       @mutex ||= Mutex::new
-      @mudex.synchronize do
+      @mutex.synchronize do
         now = Time::new
         if @last_call && now - @last_call < FREQUENCY_LIMIT
           sleep FREQUENCY_LIMIT - (now - @last_call)

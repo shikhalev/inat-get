@@ -47,7 +47,7 @@ class Taxon < Entity
   field :vision, type: Boolean
 
   links :ancestors, item_type: Taxon, link_field: :ancestor_id
-  links :taxon_photos, item_type: Photo
+  links :taxon_photos, item_type: Photo, table_name: :taxon_photos
 
   backs :children, item_type: Taxon, ids_field: :child_ids, back_field: :parent_id, owned: false
 

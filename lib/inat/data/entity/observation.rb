@@ -62,6 +62,7 @@ class Observation < Entity
 
   links :places, item_type: Place, owned: true
   links :projects, item_type: Project, owned: true                       # Это только ручные
+  links :cached_projects, item_type: Project, table_name: :project_observations, owned: false
 
   field :owners_identification_from_vision, type: Boolean
   field :identifications_most_agree, type: Boolean

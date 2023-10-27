@@ -27,6 +27,10 @@ class Integer
     self
   end
 
+  def to_query
+    to_s
+  end
+
 end
 
 class String
@@ -48,6 +52,10 @@ class String
   end
 
   def to_db
+    self
+  end
+
+  def to_query
     self
   end
 
@@ -77,6 +85,10 @@ class Symbol
     self.to_s
   end
 
+  def to_query
+    to_s
+  end
+
 end
 
 class Float
@@ -100,6 +112,10 @@ class Float
 
   def to_db
     self
+  end
+
+  def to_query
+    to_s
   end
 
 end
@@ -134,6 +150,10 @@ class Time
     to_i
   end
 
+  def to_query
+    xmlschema
+  end
+
 end
 
 class Date
@@ -166,6 +186,10 @@ class Date
     to_time.to_i
   end
 
+  def to_query
+    xmlschema
+  end
+
 end
 
 module Boolean
@@ -193,6 +217,10 @@ module Boolean
 
   def to_db
     self && 1 || 0
+  end
+
+  def to_query
+    inspect
   end
 
 end
@@ -246,6 +274,14 @@ class NilClass
 
   def to_db
     nil
+  end
+
+end
+
+class Array
+
+  def to_query
+    map { |i| i.to_query }.join(',')
   end
 
 end
