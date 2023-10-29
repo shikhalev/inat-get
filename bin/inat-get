@@ -9,19 +9,26 @@ require 'inat/app/application'
 require 'inat/data/entity/observation'
 require 'inat/data/entity/request'
 require 'inat/data/db'
+require 'inat/data/query'
 
 app = Application.new
 
 PP::pp app, $>, 64
 
 # puts
-puts DDL.DDL
+# puts DDL.DDL
 
 # PP::pp DB::instance, $>, 64
 
 # data = API::query(:observations, user_login: 'shikhalev', month: 11)
 
 # PP::pp data.map { |d| Observation::parse(d) }.size, $>, 64
+
+# https://www.inaturalist.org/projects/174222
+
+query = Query::new project_id: 174222
+
+PP::pp query.observations.size, $>, 64
 
 # require 'inat/data/types/apiquery'
 
@@ -32,4 +39,4 @@ puts DDL.DDL
 # PP::pp a, $>, 64
 # puts a.to_query
 
-Request::create ''
+# Request::create ''

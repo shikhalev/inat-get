@@ -52,3 +52,38 @@ class Location
   end
 
 end
+
+class Radius
+
+  attr_reader :latitude, :longitude, :radius
+
+  def initialize latitude, longitude, radius
+    raise ArgumentError, "Latitude must be a Numeric!", caller  unless Numeric === latitude
+    raise ArgumentError, "Longitude must be a Numeric!", caller unless Numeric === longitude
+    raise ArgumentError, "Radius must be a Numeric!", caller    unless Numeric === radius    || radius == nil
+    @latitude, @longitude, @radius = latitude, longitude, radius
+  end
+
+end
+
+class Sector
+
+  attr_reader :north, :east, :south, :west
+
+  def initialize north, east, south, west
+    raise ArgumentError, "North must be a Numeric!", caller unless Numeric === north
+    raise ArgumentError, "East must be a Numeric!", caller  unless Numeric === east
+    raise ArgumentError, "South must be a Numeric!", caller unless Numeric === south
+    raise ArgumentError, "West must be a Numeric!", caller  unless Numeric === west
+    @north, @east, @south, @west = north, east, south, west
+  end
+
+end
+
+def radius latitude, longitude, radius
+  Radius::new latitude, longitude, radius
+end
+
+def sector north, east, south, west
+  Sector::new north, east, south, west
+end

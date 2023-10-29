@@ -472,6 +472,10 @@ class Model
     @saved
   end
 
+  def post_update
+    # do nothing
+  end
+
   def update
     raise ArgumentError, "Block is required!", caller unless block_given?
     @process = true
@@ -481,10 +485,12 @@ class Model
     @mutex.synchronize do
       begin
         result = yield
+        post_update
       rescue Exception => e
         exception = e
       end
     end
+    @saved = false
     @process = false
     raise exception.class, exception.message, caller, cause: exception if exception
     result

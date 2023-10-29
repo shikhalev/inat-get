@@ -8,7 +8,7 @@ require_relative '../app/globals'
 
 module API
 
-  RECORDS_LIMIT = 200
+  RECORDS_LIMIT = 30
   FREQUENCY_LIMIT = 1.0
 
   class << self
@@ -20,7 +20,7 @@ module API
         head = rest.shift RECORDS_LIMIT
         return get(path, *head) + get(path, *rest)
       end
-      if path == :users
+      if path == :users && ids.size > 1
         rest = ids.dup
         head = rest.shift
         return get(path, head) + get(path, *rest)
@@ -78,6 +78,7 @@ module API
     end
 
     def query path, **params
+      pp [ :API, path, params ]
       para = params.dup
       para.delete_if { |key, _| key.intern == :page }
       para[:per_page] = RECORDS_LIMIT
@@ -91,7 +92,7 @@ module API
         if @last_call && now - @last_call < FREQUENCY_LIMIT
           sleep FREQUENCY_LIMIT - (now - @last_call)
         end
-        url = make_url path, **params
+        url = make_url path, **para
         uri = URI(url)
         https = uri.scheme == 'https'
         Net::HTTP::start uri.host, uri.port, use_ssl: https do |http|
@@ -104,7 +105,8 @@ module API
             total = data['total_results']
             paged = data['per_page']
             if total > paged
-              max = result.map { |o| o.id }.max
+              pp [ :PAGER, total, paged ]
+              max = result.map { |o| o['id'] }.max
               rest = para
               rest[:id_above] = max
             end

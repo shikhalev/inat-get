@@ -65,6 +65,7 @@ class Entity < Model
 
     # TODO: подумать о переименовании
     def from_db_rows data
+      result = []
       data.each do |row|
         id = row['id'] || row[:id]
         raise TypeError, "Invalid data row: no 'id' field!" unless id
@@ -96,7 +97,6 @@ class Entity < Model
     def read *ids
       return [] if ids.empty?
       # check = ids.dup
-      result = []
       fields = self.fields
       data = DB.execute "SELECT * FROM #{ self.table } WHERE id IN (#{ (['?'] * ids.size).join(',') })", *ids
       from_db_rows data
@@ -176,6 +176,7 @@ class Entity < Model
 
   def save
     return self if @saved
+    pp [ :SAVE, self.id ] if Request === self
     @saved = true
     names = []
     values = []
@@ -186,16 +187,18 @@ class Entity < Model
         case field.kind
         when :value
           value = self.send(field.name)
-          if Entity === value && value != self
+          if Entity === value && value != self # && !value.process?
             value.save
           end
           name, value = field.to_db value
+          pp [ :SAVE, self.class, self.id, name, value ] if Request === self
           if name != nil && value != nil
             names << name
             values << value
           end
         when :links
           links << { field: field, values: self.send(field.name) } if field.owned?
+          pp [ :SAVE, :links, links.size ] if Request === self
         when :backs
           backs << { field: field, values: self.send(field.name) } if field.owned?
         end
@@ -209,7 +212,7 @@ class Entity < Model
         field = link[:field]
         values = link[:values]
         values.each do |value|
-          value.save if value != self
+          value.save if value != self # && !value.process?
           DB.execute "INSERT OR REPLACE INTO #{ field.table_name } (#{ field.back_field }, #{ field.link_field }) VALUES (?, ?);", self.id, value.id
         end
         DB.execute "DELETE FROM #{ field.table_name } WHERE #{ field.back_field } = ? AND #{ field.link_field } NOT IN (#{ (['?'] * values.size).join(',') });",
@@ -220,7 +223,7 @@ class Entity < Model
         values = back[:values]
         values.each do |value|
           value.send "#{ field.back_field }=", self.id
-          value.save if value != self
+          value.save if value != self # && !value.process?
         end
         DB.execute "DELETE FROM #{ field.type.table } WHERE #{ field.back_field } = ? AND id NOT IN (#{ (['?'] * values.size).join(',') });",
                     self.id, *values.map(&:id)

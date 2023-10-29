@@ -38,11 +38,11 @@ class Request < Entity
           max_id + 1
         end
           @entities ||= {}
-        @entities[id] ||= new new_id
-        @entities[id].time = 0
-        @entities[id].query = query_string
-        @entities[id].project_id = project_id
-        @entities[id].save
+        @entities[new_id] ||= new new_id
+        @entities[new_id].time = Time::at(0)
+        @entities[new_id].query = query_string
+        @entities[new_id].project_id = project_id
+        @entities[new_id].save
       end
     end
 

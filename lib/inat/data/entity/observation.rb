@@ -78,13 +78,48 @@ class Observation < Entity
   links :votes, item_type: Vote, owned: true
   links :faves, item_type: Vote, owned: true
 
+  field :day, type: Integer, index: true
+  field :month, type: Integer, index: true
+  field :year, type: Integer, index: true
+
+  block :observed_on_details, type: Hash do |value|
+    if Hash === value
+      self.day   = value['day']
+      self.month = value['month']
+      self.year  = value['year']
+    end
+  end
+
+  field :endemic, type: Boolean, index: true
+  field :introduced, type: Boolean, index: true
+  field :native, type: Boolean, index: true
+  field :taxon_is_active, type: Boolean, index: true
+  field :threatened, type: Boolean, index: true
+  field :photo_licensed, type: Boolean, index: true
+  field :rank, type: Rank, index: true
+
+  def post_update
+    t = self.taxon
+    if t
+      self.endemic = t.endemic
+      self.introduced = t.introduced
+      self.native = t.native
+      self.taxon_is_active = t.is_active
+      self.threatened = t.threatened
+      self.rank = t.rank
+    end
+    if self.observation_photos != nil
+      self.photo_licensed = self.observation_photos.any? { |p| p.photo.license_code != nil }
+    end
+  end
+
   ignore :tags                # TODO: implement
   ignore :created_time_zone   # TODO: подумать...
   ignore :observed_time_zone
   ignore :time_zone_offset
   ignore :geojson
   ignore :annotations
-  ignore :observed_on_details
+  # ignore :observed_on_details
   ignore :created_at_details
   ignore :cached_votes_total
   ignore :comments_count

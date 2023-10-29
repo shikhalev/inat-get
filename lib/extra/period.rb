@@ -17,7 +17,8 @@ class Period
 
     def parse src
       return nil if src == nil
-      raise TypeError, "Source must be a String!", caller unless String === src
+      return src if Period === src
+      raise TypeError, "Source (#{ src.inspect }) must be a String!", caller unless String === src
       src = src.strip
       value = 0
       case src
@@ -144,6 +145,7 @@ class Period
   include Comparable
 
   def <=> other
+    return nil if other.nil?
     @value <=> other.value
   end
 
