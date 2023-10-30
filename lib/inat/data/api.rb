@@ -8,12 +8,13 @@ require_relative '../app/globals'
 
 module API
 
-  RECORDS_LIMIT = 30
+  RECORDS_LIMIT = 200
   FREQUENCY_LIMIT = 1.0
 
   class << self
 
     def get path, *ids
+      pp [ :GET, path, ids ]
       return [] if ids.empty?
       if ids.size > RECORDS_LIMIT
         rest = ids.dup
@@ -65,12 +66,16 @@ module API
       params.each do |key, value|
         query_param = "#{ key }="
         if Array === value
-          query_param += URI.encode_uri_component value.map(&:to_query).join(',')
+          query_param += value.map(&:to_query).join(',')
         else
-          query_param += URI.encode_uri_component value.to_query
+          query_param += value.to_query
         end
         query << query_param
       end
+      locale = G.config[:api][:locale]
+      query << "locale=#{ locale }" if locale
+      preferred_place_id = G.config[:api][:preferred_place_id]
+      query << "preferred_place_id=#{ preferred_place_id }" if preferred_place_id
       if !query.empty?
         url += "?" + query.join('&')
       end
@@ -94,6 +99,7 @@ module API
         end
         url = make_url path, **para
         uri = URI(url)
+        pp [ :URI, uri ]
         https = uri.scheme == 'https'
         Net::HTTP::start uri.host, uri.port, use_ssl: https do |http|
           request = Net::HTTP::Get::new uri

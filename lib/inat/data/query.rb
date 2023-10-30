@@ -350,7 +350,7 @@ class Query
     when Integer
       @api_params[:place_id] = value
       @db_where << [ "? IN (SELECT place_id FROM observation_places WHERE observation_id = o.id)", [ value.to_db ] ]
-      @r_match << lambda { |o| o.places != nil && o.places.amy? { |p| p.id == value } }
+      @r_match << lambda { |o| o.places != nil && o.places.any? { |p| p.id == value } }
     when Array
       @api_params[:place_id] = value
       debug "DB selector for 'place_id' arrays is not implemented..."
@@ -846,7 +846,7 @@ class Query
       @r_match << lambda { |o| o.quality_grade == value }
     when Array
       @api_params[:quality_grade] = value
-      @db_where << [ "o.quality_grade IN (#{ (['?'] * value.size).join(',') })", value.map(&to_db) ]
+      @db_where << [ "o.quality_grade IN (#{ (['?'] * value.size).join(',') })", value.map(&:to_db) ]
       @r_match << lambda { |o| value.include?(o.quality_grade) }
     else
       raise TypeError, "Invalid 'quality_grade' type: #{ value.inspect }!", caller[1..]
@@ -1022,9 +1022,9 @@ class Query
         return false
       when Array
         if key.start_with?('not_') || key.start_with?('without')
-          return false unless array_covers(value.split(','), own_param)
-        else
           return false unless array_covers(own_param, value.split(','))
+        else
+          return false unless array_covers(value.split(','), own_param)
         end
       when Date
         value = Date::parse value
@@ -1042,7 +1042,7 @@ class Query
   end
 
   def api_query
-    @api_params.map { |k, v| "#{ k }=#{ URI.encode_uri_component(v.to_query) }" }.sort.join("&")
+    @api_params.map { |k, v| "#{ k }=#{ v.to_query }" }.sort.join("&")
   end
 
   def db_where
@@ -1087,6 +1087,7 @@ class Query
           project_id = @api_params[:project_id]
           project_id = nil unless Integer === project_id
           request = Request::create query_string, project_id
+          request.save
         else
           updated_since = request.time if mode != UpdateMode::RELOAD
         end
@@ -1095,23 +1096,18 @@ class Query
         # request.save
         API::query(:observations, **params).each do |json|
           o = Observation::parse json
-          DB.execute "INSERT INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, o.id
+          DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, o.id
         end
         # Считываем свежедобаленное
         request = Request::read(request.id).first
-        request.update do
-          request.time = Time::new
-        end
       end
     end
     sql, sql_args = db_where
     result = Observation::from_db_rows(DB.execute("SELECT * FROM observations o#{ sql.empty? && '' || ' WHERE ' }#{ sql };", *sql_args)).filter { |o| self.match?(o) }
     if request != nil
-      # pp [ :REQUEST ]
-      # request.update do
-      #   pp [ :REQUEST_UPDATE ]
-      #   request.observations = result
-      # end
+      request.update do
+        request.time = Time::new
+      end
       request.save
     end
     result

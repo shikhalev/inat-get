@@ -27,7 +27,7 @@ class Application
       directory: File.expand_path("~/.cache/#{ NAME }/"),
       update: UpdateMode::UPDATE,
       update_period: Period::DAY,
-      obsolete_period: Period::WEEK,
+      outdate_period: Period::WEEK,
     },
     verbose: MessageLevel::ERROR,
     log: {

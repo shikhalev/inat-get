@@ -25,8 +25,10 @@ PP::pp app, $>, 64
 # PP::pp data.map { |d| Observation::parse(d) }.size, $>, 64
 
 # https://www.inaturalist.org/projects/174222
+# https://www.inaturalist.org/places/193592
+# https://www.inaturalist.org/places/193881 (Ачитский район)
 
-query = Query::new project_id: 174222
+query = Query::new place_id: [ 193881, 193592 ], quality_grade: [ QualityGrade::RESEARCH, QualityGrade::NEEDS_ID ]
 
 PP::pp query.observations.size, $>, 64
 

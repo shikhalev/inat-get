@@ -42,15 +42,16 @@ class Project < Entity
   field :location, type: Location
 
   field :place, type: Place, index: true
-  links :users, item_type: User
+
+  # links :users, item_type: User
+  # TODO: разобраться как грузить пачками
+  ignore :users
+  ignore :user_ids
+
   backs :admins, item_type: ProjectAdmin, owned: true
   backs :project_observation_rules, item_type: ProjectObservationRule, owned: true
 
   links :flags, item_type: Flag, index: true
-
-  # NEED: implement
-  # links :observations, type: List[Observation], ids_name: :observation_ids, table: :project_observations,
-  #                     backfield: :project_id, linkfield: :observation_id, own: false
 
   links :subprojects, item_type: Project, table_name: :project_children, link_field: :child_id, owned: false
 

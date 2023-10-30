@@ -24,7 +24,7 @@ class Taxon < Entity
   field :iconic_taxon, type: Taxon
   field :min_species_taxon, type: Taxon
   field :threatened, type: Boolean, index: true
-  field :rank_level, type: Integer, index: true
+  field :rank_level, type: Float, index: true
   field :introduced, type: Boolean
   field :native, type: Boolean
   field :parent, type: Taxon
@@ -62,6 +62,8 @@ class Taxon < Entity
 
   ignore :ancestry                            # NEED: сделать обязательно
   ignore :min_species_ancestry
+  ignore :establishment_means
+  ignore :preferred_establishment_means
 
   def === other
     other.id == self.id || other.ancestor_ids.include?(self.id)

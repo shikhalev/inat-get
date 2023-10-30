@@ -142,6 +142,7 @@ class Entity < Model
                     value = value.map { |v| field.type.parse(v) }
                   end
                 else
+                  # pp [ :VALUE, self, entity.id, field, value ]
                   value = field.type.parse(value)
                 end
               else
