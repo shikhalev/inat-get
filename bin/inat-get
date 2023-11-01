@@ -27,8 +27,11 @@ PP::pp app, $>, 64
 # https://www.inaturalist.org/projects/174222
 # https://www.inaturalist.org/places/193592
 # https://www.inaturalist.org/places/193881 (Ачитский район)
+# https://www.inaturalist.org/places/194104 (Богдановичский район)
+# https://www.inaturalist.org/places/194414 (Качканарский район)
+# https://www.inaturalist.org/places/194023 (Берёзовский район)
 
-query = Query::new place_id: [ 193881, 193592 ], quality_grade: [ QualityGrade::RESEARCH, QualityGrade::NEEDS_ID ]
+query = Query::new project_id: 177076
 
 PP::pp query.observations.size, $>, 64
 

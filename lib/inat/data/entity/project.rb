@@ -25,7 +25,7 @@ class Project < Entity
   field :slug, type: Symbol, index: true
   field :title, type: String, index: true, required: true
   field :description, type: String
-  field :project_type, type: ProjectType, index: true, required: true
+  field :project_type, type: ProjectType, index: true
   field :is_umbrella, type: Boolean, index: true
   field :created_at, type: Time
   field :updated_at, type: Time

@@ -10,6 +10,8 @@ class Enum
     pre_verbose = $VERBOSE
     $VERBOSE = nil
 
+    alias :old_parse :parse
+
     def parse src
       return nil if src == nil
       return src if self === src
@@ -17,7 +19,7 @@ class Enum
       when Integer, Symbol
         self[src]
       when String
-        self[src.intern]
+        self.old_parse src, case_sensitive: false
       end
     end
 
@@ -37,7 +39,8 @@ class Enum
     def from_db src
       return nil if src == nil
       return self[src.intern] if String === src || Symbol === src
-      name = src[:name].intern
+      name = src[:name]&.intern
+      return nil if name == nil
       self[name]
     end
 

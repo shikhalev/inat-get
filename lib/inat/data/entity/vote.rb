@@ -11,7 +11,7 @@ class Vote < Entity
 
   table :votes
 
-  field :observation, type: Observation, index: true, required: true
+  # field :observation, type: Observation, index: true, required: true
 
   field :created_at, type: Time, index: true, required: true
   field :vote_flag, type: Boolean, index: true

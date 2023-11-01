@@ -9,16 +9,18 @@ require_relative '../app/globals'
 module API
 
   RECORDS_LIMIT = 200
+  GET_RECORDS_LIMIT = 100
   FREQUENCY_LIMIT = 1.0
 
   class << self
 
+    include LogDSL
+
     def get path, *ids
-      pp [ :GET, path, ids ]
       return [] if ids.empty?
-      if ids.size > RECORDS_LIMIT
+      if ids.size > GET_RECORDS_LIMIT
         rest = ids.dup
-        head = rest.shift RECORDS_LIMIT
+        head = rest.shift GET_RECORDS_LIMIT
         return get(path, *head) + get(path, *rest)
       end
       if path == :users && ids.size > 1
@@ -36,6 +38,7 @@ module API
         case path
         when :taxa, :observations
           url = G.config[:api][:root] + path.to_s + "?id=#{ ids.join(',') }"
+          url += "&per_page=#{ GET_RECORDS_LIMIT }"
           locale = G.config[:api][:locale]
           url += "&locale=#{ locale }" if locale
           preferred_place_id = G.config[:api][:preferred_place_id]
@@ -44,15 +47,45 @@ module API
           url = G.config[:api][:root] + path.to_s + "/#{ ids.join(',') }"
         end
         uri = URI(url)
+        info "GET: URI = #{ uri.inspect }"
         https = uri.scheme == 'https'
-        Net::HTTP::start uri.host, uri.port, use_ssl: https do |http|
-          request = Net::HTTP::Get::new uri
-          request['User-Agent'] = G.config[:api][:user_agent] || "INat::Get // Unknown Instance"
-          response = http.request request
-          if Net::HTTPSuccess === response
-            result = JSON.parse(response.body)['results']
-          else
-            raise RuntimeError, "Invalid response: #{ response.inspect }"
+        open_timeout = G.config[:api][:open_timeout]
+        read_timeout = G.config[:api][:read_timeout]
+        http_options = {
+          use_ssl: https
+        }
+        http_options[:open_timeout] = open_timeout if open_timeout
+        http_options[:read_timeout] = read_timeout if read_timeout
+        answered = false
+        answer_count = 10
+        last_time = Time::new
+        until answered
+          begin
+            Net::HTTP::start uri.host, uri.port, **http_options do |http|
+              request = Net::HTTP::Get::new uri
+              request['User-Agent'] = G.config[:api][:user_agent] || "INat::Get // Unknown Instance"
+              response = http.request request
+              if Net::HTTPSuccess === response
+                data = JSON.parse(response.body)
+                result = data['results']
+                total = data['total_results']
+                paged = data['per_page']
+                time_diff = Time::new - last_time
+                debug "GET OK: total = #{ total } paged = #{ paged } time = #{ time_diff } "
+              else
+                raise RuntimeError, "Invalid response: #{ response.inspect }"
+              end
+            end
+            answered = true
+          rescue OpenSSL::SSL::SSLError, Timeout::Error
+            if answer_count > 0
+              answer_count -= 1
+              answered = false
+              error "Error in HTTP request: #{ $!.inspect }, retry: #{ answer_count }."
+              sleep 2.0
+            else
+              raise
+            end
           end
         end
         @last_call = Time::new
@@ -82,8 +115,7 @@ module API
       url
     end
 
-    def query path, **params
-      pp [ :API, path, params ]
+    def query path, **params, &block
       para = params.dup
       para.delete_if { |key, _| key.intern == :page }
       para[:per_page] = RECORDS_LIMIT
@@ -99,30 +131,65 @@ module API
         end
         url = make_url path, **para
         uri = URI(url)
-        pp [ :URI, uri ]
+        info "QUERY: URI = #{ uri.inspect }"
         https = uri.scheme == 'https'
-        Net::HTTP::start uri.host, uri.port, use_ssl: https do |http|
-          request = Net::HTTP::Get::new uri
-          request['User-Agent'] = G.config[:api][:user_agent] || "INat::Get // Unknown Instance"
-          response = http.request request
-          if Net::HTTPSuccess === response
-            data = JSON.parse(response.body)
-            result = data['results']
-            total = data['total_results']
-            paged = data['per_page']
-            if total > paged
-              pp [ :PAGER, total, paged ]
-              max = result.map { |o| o['id'] }.max
-              rest = para
-              rest[:id_above] = max
+        open_timeout = G.config[:api][:open_timeout]
+        read_timeout = G.config[:api][:read_timeout]
+        http_options = {
+          use_ssl: https
+        }
+        http_options[:open_timeout] = open_timeout if open_timeout
+        http_options[:read_timeout] = read_timeout if read_timeout
+        answered = false
+        answer_count = 10
+        last_time = Time::new
+        until answered
+          begin
+            Net::HTTP::start uri.host, uri.port, **http_options do |http|
+              request = Net::HTTP::Get::new uri
+              request["User-Agent"] = G.config[:api][:user_agent] || "INat::Get // Unknown Instance"
+              response = http.request request
+              if Net::HTTPSuccess === response
+                data = JSON.parse(response.body)
+                result = data["results"]
+                total = data["total_results"]
+                paged = data["per_page"]
+                time_diff = Time::new - last_time
+                debug "QUERY OK: total = #{ total } paged = #{ paged } time = #{ time_diff } "
+                if total > paged
+                  max = result.map { |o| o["id"] }.max
+                  rest = para
+                  rest[:id_above] = max
+                end
+              else
+                raise RuntimeError, "Invalid response: #{response.inspect}"
+              end
             end
-          else
-            raise RuntimeError, "Invalid response: #{ response.inspect }"
+            answered = true
+          rescue OpenSSL::SSL::SSLError, Timeout::Error
+            if answer_count > 0
+              answer_count -= 1
+              answered = false
+              error "Error in HTTP request: #{ $!.inspect }, retry: #{ answer_count }."
+              sleep 2.0
+            else
+              raise
+            end
           end
         end
+        @last_call = Time::new
       end
-      result += query path, **rest if rest
-      result
+      if block_given?
+        rr = []
+        result.each do |js_object|
+          rr << yield(js_object)
+        end
+        rr += query(path, **rest, &block) if rest
+        rr
+      else
+        result += query(path, **rest) if rest
+        result
+      end
     end
 
     def load_file filename

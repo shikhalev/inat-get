@@ -6,6 +6,8 @@ class ProjectType < Enum
 
   items :collection,
         :umbrella,
+        :contest,
+        :bioblitz,
         :manual
 
   class << self

@@ -102,6 +102,7 @@ class Enum
     end
 
     def [] name_or_order
+      return name_or_order if self === name_or_order
       case name_or_order
       when Symbol, Integer
         @by_name[name_or_order] || @by_order[name_or_order]
@@ -113,6 +114,7 @@ class Enum
     end
 
     def parse src, case_sensitive: true
+      return src if self === src
       raise TypeError, "Source must be a String!", caller unless String === src
       src = src.strip
       prefix = self.name + '::'

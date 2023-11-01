@@ -41,7 +41,7 @@ module LogDSL
   end
 
   def log message, level: MessageLevel::INFO
-    G.logger.log G.current_task&.name, level, message
+    G.logger.log(G.current_task&.name || '‹main›', level, message)
   end
 
   def error message, exception: nil

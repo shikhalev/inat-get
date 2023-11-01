@@ -43,6 +43,8 @@ class Application
       root: API_DEFAULT,
       locale: nil,
       preferred_place_id: nil,
+      open_timeout: nil,
+      read_timeout: nil,
     },
     preamble: [],
   }
@@ -274,6 +276,8 @@ class Application
     config_file = options[:config_file] || CONFIG_FILE
     @config.deep_merge! YAML.load_file(config_file, symbolize_names: true, freeze: true) if File.exist?(config_file)
     @config.deep_merge! options
+    @config[:verbose] = MessageLevel::parse @config[:verbose]
+    @config[:log][:level] = MessageLevel::parse @config[:log][:level]
   end
 
   attr_reader :config

@@ -8,6 +8,8 @@ require_relative 'ddl'
 
 class DB
 
+  include LogDSL
+
   def self.get_finalizer *dbs
     proc do
       dbs.each { |db| db.close }
@@ -28,13 +30,32 @@ class DB
   end
 
   def execute query, *args
-    @data.execute query, args
+    @mutex ||= Mutex::new
+    @mutex.synchronize do
+      last_time = Time::new
+      # info "DB: query = #{ query } args = #{ args.inspect }"
+      result = @data.execute query, args
+      time_diff = Time::new - last_time
+      # debug "DB OK: count = #{ Array === result && result.size || 'none' } time = #{ time_diff }"
+      result
+    end
   end
 
-  def transaction &block
-    raise ArgumentError, "Block is required?", caller unless block_given?
-    @data.transaction(&block)
+  def execute_batch query
+    @mutex ||= Mutex::new
+    @mutex.synchronize do
+      last_time = Time::new
+      # info "DB: batch = #{ query }"
+      @data.execute_batch query
+      time_diff = Time::new - last_time
+      # debug "DB OK: time = #{ time_diff }"
+    end
   end
+
+  # def transaction &block
+  #   raise ArgumentError, "Block is required?", caller unless block_given?
+  #   @data.transaction(&block)
+  # end
 
   class << self
 
@@ -47,9 +68,13 @@ class DB
       instance.execute query, *args
     end
 
-    def transaction &block
-      instance.transaction(&block)
+    def execute_batch query
+      instance.execute_batch query
     end
+
+    # def transaction &block
+    #   instance.transaction(&block)
+    # end
 
   end
 

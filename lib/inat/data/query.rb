@@ -859,6 +859,8 @@ class Query
     @db_where = []
     @r_match = []
 
+    debug "Initializing Query: #{ params.inspect }"
+
     params.each do |key, value|
       key = key.intern
       case key
@@ -1042,6 +1044,7 @@ class Query
   end
 
   def api_query
+    # TODO: подумать о сортировке массивов
     @api_params.map { |k, v| "#{ k }=#{ v.to_query }" }.sort.join("&")
   end
 
@@ -1052,7 +1055,7 @@ class Query
       sql << item[0]
       sql_args << item[1]
     end
-    [ sql.map { |s| "(#{s})" }.join(' AND '), sql_args.flatten ]
+    [ sql.map { |s| "(#{ s })" }.join(' AND '), sql_args.flatten ]
   end
 
   def match? observation
@@ -1094,10 +1097,14 @@ class Query
         params = @api_params.dup
         params[:updated_since] = updated_since if updated_since && updated_since != Time::at(0)
         # request.save
-        API::query(:observations, **params).each do |json|
-          o = Observation::parse json
-          DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, o.id
+        olinks = []
+        API::query(:observations, **params) do |json|
+          obs = Observation::parse json
+          olinks << "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (#{ request.id }, #{obs.id});"
+          # DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
+          obs
         end
+        DB.execute_batch olinks.join("\n")
         # Считываем свежедобаленное
         request = Request::read(request.id).first
       end

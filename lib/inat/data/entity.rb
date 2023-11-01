@@ -58,7 +58,7 @@ class Entity < Model
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
       load(*nc_ids)
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
-      warning "Some IDs were not fetched: #{ ids.join(', ') }!" unless nc_ids.empty?
+      warning "Some #{ self } IDs were not fetched: #{ ids.join(', ') }!" unless nc_ids.empty?
       # result = [ nil ] if result == []
       result
     end
@@ -97,7 +97,7 @@ class Entity < Model
     def read *ids
       return [] if ids.empty?
       # check = ids.dup
-      fields = self.fields
+      # fields = self.fields
       data = DB.execute "SELECT * FROM #{ self.table } WHERE id IN (#{ (['?'] * ids.size).join(',') })", *ids
       from_db_rows data
     end
@@ -142,7 +142,6 @@ class Entity < Model
                     value = value.map { |v| field.type.parse(v) }
                   end
                 else
-                  # pp [ :VALUE, self, entity.id, field, value ]
                   value = field.type.parse(value)
                 end
               else
@@ -177,7 +176,6 @@ class Entity < Model
 
   def save
     return self if @saved
-    pp [ :SAVE, self.id ] if Request === self
     @saved = true
     names = []
     values = []
@@ -192,14 +190,12 @@ class Entity < Model
             value.save
           end
           name, value = field.to_db value
-          pp [ :SAVE, self.class, self.id, name, value ] if Request === self
           if name != nil && value != nil
             names << name
             values << value
           end
         when :links
           links << { field: field, values: self.send(field.name) } if field.owned?
-          pp [ :SAVE, :links, links.size ] if Request === self
         when :backs
           backs << { field: field, values: self.send(field.name) } if field.owned?
         end
@@ -212,10 +208,13 @@ class Entity < Model
       links.each do |link|
         field = link[:field]
         values = link[:values]
+        olinks = []
         values.each do |value|
-          value.save if value != self # && !value.process?
-          DB.execute "INSERT OR REPLACE INTO #{ field.table_name } (#{ field.back_field }, #{ field.link_field }) VALUES (?, ?);", self.id, value.id
+          value.save if value != self
+          # DB.execute "INSERT OR REPLACE INTO #{ field.table_name } (#{ field.back_field }, #{ field.link_field }) VALUES (?, ?);", self.id, value.id
+          olinks << "INSERT OR REPLACE INTO #{ field.table_name } (#{ field.back_field }, #{ field.link_field }) VALUES (#{ self.id }, #{ value.id });"
         end
+        DB.execute_batch olinks.join("\n")
         DB.execute "DELETE FROM #{ field.table_name } WHERE #{ field.back_field } = ? AND #{ field.link_field } NOT IN (#{ (['?'] * values.size).join(',') });",
                     self.id, *values.map(&:id)
       end
@@ -224,7 +223,7 @@ class Entity < Model
         values = back[:values]
         values.each do |value|
           value.send "#{ field.back_field }=", self.id
-          value.save if value != self # && !value.process?
+          value.save if value != self
         end
         DB.execute "DELETE FROM #{ field.type.table } WHERE #{ field.back_field } = ? AND id NOT IN (#{ (['?'] * values.size).join(',') });",
                     self.id, *values.map(&:id)
