@@ -58,7 +58,7 @@ class Entity < Model
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
       load(*nc_ids)
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
-      warning "Some #{ self } IDs were not fetched: #{ ids.join(', ') }!" unless nc_ids.empty?
+      warning "Some #{ self } IDs were not fetched: #{ nc_ids.join(', ') }!" unless nc_ids.empty?
       # result = [ nil ] if result == []
       result
     end
