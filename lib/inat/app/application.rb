@@ -3,7 +3,6 @@
 require_relative 'config'
 require_relative 'logging'
 require_relative 'preamble'
-require_relative '../cache/cache'
 require_relative 'globals'
 
 class Application
@@ -18,7 +17,6 @@ class Application
     setup!
     G.config = @config.freeze
     G.logger = DualLogger::new self
-    @cache = Cache::new self
   end
 
   def run

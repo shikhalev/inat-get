@@ -245,7 +245,8 @@ module URI
     def parse src
       return nil if src == nil
       return src if URI === src
-      return std_parse(URI::DEFAULT_PARSER.escape(src)) if String === src
+      url = URI::DEFAULT_PARSER.escape(src).gsub('+', '%2B')
+      return std_parse(url) if String === src
       raise TypeError, "Source must be a String!", caller
     end
 
@@ -256,10 +257,11 @@ module URI
     end
 
     def from_db src
-      return nil if src == nil
-      return src if URI === src
-      return URI(URI::DEFAULT_PARSER.escape(src)) if String === src
-      raise TypeError, "Source must be a String!", caller
+      parse src
+      # return nil if src == nil
+      # return src if URI === src
+      # return URI(URI::DEFAULT_PARSER.escape(src)) if String === src
+      # raise TypeError, "Source must be a String!", caller
     end
 
   end

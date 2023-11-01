@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../utils/bool'
+require_relative 'types/std'
 
 autoload :Entity, 'inat/data/entity'
 

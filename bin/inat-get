@@ -30,8 +30,9 @@ PP::pp app, $>, 64
 # https://www.inaturalist.org/places/194104 (Богдановичский район)
 # https://www.inaturalist.org/places/194414 (Качканарский район)
 # https://www.inaturalist.org/places/194023 (Берёзовский район)
+# https://api.inaturalist.org/v1/observations?project_id=176067&updated_since=2023-10-31T19:36:29+05:00&per_page=200&order_by=id&order=asc&locale=ru&preferred_place_id=11829
 
-query = Query::new project_id: 177076
+query = Query::new project_id: 175551
 
 PP::pp query.observations.size, $>, 64
 
@@ -45,3 +46,5 @@ PP::pp query.observations.size, $>, 64
 # puts a.to_query
 
 # Request::create ''
+
+# pp URI::parse('https://api.inaturalist.org/v1/observations?project_id=176067&updated_since=2023-10-31T19:36:29+05:00&per_page=200&order_by=id&order=asc&locale=ru&preferred_place_id=11829')
