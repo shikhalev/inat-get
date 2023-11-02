@@ -35,7 +35,7 @@ PP::pp app, $>, 64
 # W, [2023-11-02T01:54:41.818021 #8118]  WARN -- ‹main›: Some Taxon IDs were not fetched: 48460, 1, 47120, 245097, 47119, 47118, 120474, 342614, 319384, 67599, 495875, 153683, 153680, 367182, 48893, 1252003, 60920!
 # W, [2023-11-02T03:49:58.509031 #8118]  WARN -- ‹main›: Some Taxon IDs were not fetched: 1, 47118, 47119, 47120, 48460, 48893, 60920, 67599, 120474, 153680, 153683, 245097, 319384, 342614, 367182, 495875, 1252003!
 
-query = Query::new project_id: 176526, taxon_id: 47178
+query = Query::new project_id: 176621
 
 PP::pp query.observations.size, $>, 64
 

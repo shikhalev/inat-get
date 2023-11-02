@@ -1090,7 +1090,12 @@ class Query
         params[:updated_since] = updated_since if updated_since && updated_since != Time::at(0)
         # request.save
         olinks = []
-        API::query(:observations, **params) do |json|
+        tt = nil
+        cc = 0
+        API::query(:observations, **params) do |json, total|
+          tt ||= total
+          cc += 1
+          $stderr.printf "\rFetch: %d of %d\r", cc, tt
           obs = Observation::parse json
           olinks << "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (#{ request.id }, #{obs.id});"
           # DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
@@ -1098,9 +1103,11 @@ class Query
         end
         DB.execute_batch olinks.join("\n")
         # Считываем свежедобаленное
+        # TODO: разобраться с удалением устаревшего
         request = Request::read(request.id).first
       end
     end
+    # TODO: разобраться, где тупня
     sql, sql_args = db_where
     result = Observation::from_db_rows(DB.execute("SELECT * FROM observations o#{ sql.empty? && '' || ' WHERE ' }#{ sql };", *sql_args))
     if !@db_where.empty?
@@ -1112,6 +1119,7 @@ class Query
       end
       request.save
     end
+    $stderr.puts ''
     result
   end
 

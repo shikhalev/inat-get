@@ -123,6 +123,7 @@ module API
       para[:order]    = :asc
       result = []
       rest = nil
+      total = 0
       @mutex ||= Mutex::new
       @mutex.synchronize do
         now = Time::new
@@ -182,7 +183,7 @@ module API
       if block_given?
         rr = []
         result.each do |js_object|
-          rr << yield(js_object)
+          rr << yield(js_object, total)
         end
         rr += query(path, **rest, &block) if rest
         rr

@@ -476,10 +476,10 @@ class Model
     # do nothing
   end
 
-  def update
+  def update(from_db: false)
     raise ArgumentError, "Block is required!", caller unless block_given?
     @process = true
-    @saved = false
+    @saved = false unless from_db
     result = nil
     exception = nil
     @mutex.synchronize do
@@ -490,7 +490,7 @@ class Model
         exception = e
       end
     end
-    @saved = false
+    @saved = false unless @from_db
     @process = false
     raise exception.class, exception.message, caller, cause: exception if exception
     result

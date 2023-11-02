@@ -71,7 +71,7 @@ class Entity < Model
         raise TypeError, "Invalid data row: no 'id' field!" unless id
         # check.delete id
         entity = get id
-        entity.update do
+        entity.update(from_db: true) do
           fields.each do |_, field|
             case field.kind
             when :value
