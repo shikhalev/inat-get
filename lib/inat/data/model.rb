@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
+require_relative '../app/globals'
 require_relative 'types/std'
 
 autoload :Entity, 'inat/data/entity'
 
 class Model
+
+  include LogDSL
 
   class Field
 
@@ -69,7 +72,12 @@ class Model
           instance_variable_get("@#{ ni }")
         end
         md.define_method "#{ ni }=" do |value|
-          instance_variable_set "@#{ ni }", value
+          prevalue = instance_variable_get "@#{ ni }"
+          if prevalue != value
+            # debug "#{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" unless prevalue.nil?
+            instance_variable_set "@#{ ni }", value
+            instance_variable_set "@saved", false
+          end
         end
         md.define_method "#{ nm }" do
           v = instance_variable_get("@#{ ni }")
@@ -82,7 +90,12 @@ class Model
           end
         end
         md.define_method "#{ nm }=" do |value|
-          instance_variable_set "@#{ ni }", value&.id
+          prevalue = instance_variable_get "@#{ ni }"
+          if prevalue != value&.id
+            # debug "#{ self.id }: #{ nm } / #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" unless prevalue.nil?
+            instance_variable_set "@#{ ni }", value&.id
+            instance_variable_set "@saved", false
+          end
         end
       else
         md.define_method "#{ nm }" do
@@ -90,7 +103,12 @@ class Model
         end
         md.define_method "#{ nm }=" do |value|
           raise TypeError, "Invalid '#{ nm }' value: #{ value.inspect }!", caller unless tp === value || (value == nil && !rq)
-          instance_variable_set "@#{ nm }", value
+          prevalue = instance_variable_get "@#{ nm }"
+          if prevalue != value
+            # debug "#{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect }" unless prevalue.nil?
+            instance_variable_set "@#{ nm }", value
+            instance_variable_set "@saved", false
+          end
         end
       end
     end
@@ -222,10 +240,18 @@ class Model
           instance_variable_get("@#{ ni }") || []
         end
         md.define_method "#{ ni }=" do |value|
-          if value == nil
-            instance_variable_set "@#{ ni }", []
-          else
+          prevalue = instance_variable_get "@#{ ni }"
+          if ni.intern == :ancestor_ids
+            prevalue&.delete(self.id)
+            value&.delete(self.id)
+            if value != nil && value[0] != 48460
+              value.prepend 48460
+            end
+          end
+          if prevalue&.sort != value&.sort
+            # debug "#{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" unless prevalue.nil?
             instance_variable_set "@#{ ni }", value
+            instance_variable_set "@saved", false
           end
         end
         md.define_method "#{ nm }" do
@@ -247,7 +273,12 @@ class Model
           value.each do |v|
             raise TypeError, "Invalid #{ nm } value: #{ v.inspect }!", caller unless tp === v
           end
-          instance_variable_set "@#{ nm }", value
+          prevalue = instance_variable_get("@#{ nm }")
+          if prevalue&.sort != value&.sort
+            # debug "#{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" unless prevalue.nil?
+            instance_variable_set "@#{ nm }", value
+            instance_variable_set "@saved", false
+          end
         end
       end
     end
@@ -354,14 +385,26 @@ class Model
 
   class << self
 
-    def path name = nil
+    def api_path name = nil
       raise TypeError, "Path name must be a Symbol!", caller unless name == nil || Symbol === name
-      @path = name if name != nil
-      @path
+      @api_path = name if name != nil
+      @api_path
     end
 
     def has_path?
-      !!@path
+      !!@api_path
+    end
+
+    def api_part part = nil
+      raise TypeError, "Part name must be a Symbol!", caller unless part == nil || Symbol === part
+      @api_part = part if part != nil
+      @api_part
+    end
+
+    def api_limit limit = nil
+      raise TypeError, "Part name must be an Integer!", caller unless limit == nil || Integer === limit
+      @api_limit = limit if limit != nil
+      @api_limit
     end
 
     def table name = nil
@@ -479,18 +522,18 @@ class Model
   def update(from_db: false)
     raise ArgumentError, "Block is required!", caller unless block_given?
     @process = true
-    @saved = false unless from_db
+    @saved = true if from_db
     result = nil
     exception = nil
     @mutex.synchronize do
       begin
         result = yield
-        post_update
+        post_update unless from_db
       rescue Exception => e
         exception = e
       end
     end
-    @saved = false unless @from_db
+    @saved = true if from_db
     @process = false
     raise exception.class, exception.message, caller, cause: exception if exception
     result

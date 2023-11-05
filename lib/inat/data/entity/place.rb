@@ -9,7 +9,10 @@ autoload :Observation, 'inat/data/entity/observation'
 
 class Place < Entity
 
-  path :places
+  api_path :places
+  api_part :path
+  api_limit 500
+
   table :places
 
   field :uuid, type: UUID, unique: true

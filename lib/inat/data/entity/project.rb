@@ -19,7 +19,10 @@ autoload :Taxon,                  'inat/data/entity/taxon'
 
 class Project < Entity
 
-  path :projects
+  api_path :projects
+  api_part :query
+  api_limit 200
+
   table :projects
 
   field :slug, type: Symbol, index: true

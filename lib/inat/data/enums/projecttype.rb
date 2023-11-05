@@ -8,7 +8,10 @@ class ProjectType < Enum
         :umbrella,
         :contest,
         :bioblitz,
+        :assessment,
         :manual
+
+  # TODO: переделать тип во что-то универсальное. наверное.
 
   class << self
 

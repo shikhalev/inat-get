@@ -1060,6 +1060,7 @@ class Query
 
   def observations
     request = nil
+    current_time = nil
     mode = G.config[:data][:update]
     mode = UpdateMode[mode] if Symbol === mode || Integer === mode
     mode = UpdateMode::parse(mode) if String === mode
@@ -1092,30 +1093,42 @@ class Query
         olinks = []
         tt = nil
         cc = 0
+        current_time = Time::new
+        # NEED: remove
+        # params[:id_above] = 144169417
         API::query(:observations, **params) do |json, total|
           tt ||= total
           cc += 1
-          $stderr.printf "\rFetch: %d of %d\r", cc, tt
+          pc = cc * 100 / tt
+          td = (Time::new - current_time) / cc
+          te = (td * (tt - cc)).to_i
+          pe = Period::make seconds: te
+          pt = Period::make seconds: (Time::new - current_time).to_i
+          $stderr.printf "\rFetch: %d of %d - %d%% / %12s of %12s\r", cc, tt, pc, pt.to_s, pe.to_s
+          if (cc % 100) == 0
+            $stderr.puts ''
+          end
           obs = Observation::parse json
           olinks << "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (#{ request.id }, #{obs.id});"
           # DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
-          obs
         end
         DB.execute_batch olinks.join("\n")
         # Считываем свежедобаленное
         # TODO: разобраться с удалением устаревшего
+        # NEED: разобраться с частичной загрузкой — большие проекты грузятся недопустимо долго
+        #       возможно, стоит запараллелить обработку
         request = Request::read(request.id).first
       end
     end
     # TODO: разобраться, где тупня
     sql, sql_args = db_where
     result = Observation::from_db_rows(DB.execute("SELECT * FROM observations o#{ sql.empty? && '' || ' WHERE ' }#{ sql };", *sql_args))
-    if !@db_where.empty?
+    if !@r_match.empty?
       result = result.filter { |o| self.match?(o) }
     end
     if request != nil
       request.update do
-        request.time = Time::new
+        request.time = current_time if current_time
       end
       request.save
     end

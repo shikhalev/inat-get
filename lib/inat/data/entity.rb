@@ -103,8 +103,8 @@ class Entity < Model
     end
 
     def load *ids
-      return [] if ids.empty? || @path.nil?
-      data = API.get @path, *ids
+      return [] if ids.empty? || @api_path.nil?
+      data = API.get @api_path, @api_part, @api_limit, *ids
       data.map { |obj| parse obj }
     end
 
@@ -166,6 +166,8 @@ class Entity < Model
   def initialize id
     super()
     self.id = id
+    # @saved = true
+    @s_count = 0
   end
 
   def complete?
@@ -176,6 +178,9 @@ class Entity < Model
 
   def save
     return self if @saved
+    # debug "Save #{ self.class.name } id = #{ self.id } saved = #{ @saved.inspect }"
+    @s_count += 1
+    # echo "Saving count = #{ @s_count } [#{ self.class }: #{ self.id }]" if @s_count > 1
     @saved = true
     names = []
     values = []
@@ -229,6 +234,8 @@ class Entity < Model
                     self.id, *values.map(&:id)
       end
     # end
+    @saved = true
+    # TODO: разобраться и почистить двойное присваивание
     self
   end
 

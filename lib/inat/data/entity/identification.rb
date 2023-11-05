@@ -14,7 +14,10 @@ autoload :Flag,        'inat/data/entity/flag'
 
 class Identification < Entity
 
-  path :identifications
+  api_path :identifications
+  api_part :query
+  api_limit 200
+
   table :identifications
 
   field :observation, type: Observation, index: true

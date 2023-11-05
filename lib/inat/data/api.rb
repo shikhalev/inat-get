@@ -9,24 +9,18 @@ require_relative '../app/globals'
 module API
 
   RECORDS_LIMIT = 200
-  GET_RECORDS_LIMIT = 100
   FREQUENCY_LIMIT = 1.0
 
   class << self
 
     include LogDSL
 
-    def get path, *ids
+    def get path, part, limit, *ids
       return [] if ids.empty?
-      if ids.size > GET_RECORDS_LIMIT
+      if ids.size > limit
         rest = ids.dup
-        head = rest.shift GET_RECORDS_LIMIT
+        head = rest.shift limit
         return get(path, *head) + get(path, *rest)
-      end
-      if path == :users && ids.size > 1
-        rest = ids.dup
-        head = rest.shift
-        return get(path, head) + get(path, *rest)
       end
       result = []
       @mutex ||= Mutex::new
@@ -35,16 +29,18 @@ module API
         if @last_call && now - @last_call < FREQUENCY_LIMIT
           sleep FREQUENCY_LIMIT - (now - @last_call)
         end
-        case path
-        when :taxa, :observations
+        case part
+        when :query
           url = G.config[:api][:root] + path.to_s + "?id=#{ ids.join(',') }"
-          url += "&per_page=#{ GET_RECORDS_LIMIT }"
+          url += "&per_page=#{ limit }"
           locale = G.config[:api][:locale]
           url += "&locale=#{ locale }" if locale
           preferred_place_id = G.config[:api][:preferred_place_id]
           url += "&preferred_place_id=#{ preferred_place_id }" if preferred_place_id
-        else
+        when :path
           url = G.config[:api][:root] + path.to_s + "/#{ ids.join(',') }"
+        else
+          raise ArgumentError, "Invalid 'part' argument: #{ part.inspect }!", caller
         end
         uri = URI(url)
         info "GET: URI = #{ uri.inspect }"
@@ -73,7 +69,7 @@ module API
                 time_diff = Time::new - last_time
                 debug "GET OK: total = #{ total } paged = #{ paged } time = #{ time_diff } "
               else
-                raise RuntimeError, "Invalid response: #{ response.inspect }"
+                error "Bad response: #{ response.inspect }!"
               end
             end
             answered = true
@@ -84,7 +80,8 @@ module API
               error "Error in HTTP request: #{ $!.inspect }, retry: #{ answer_count }."
               sleep 2.0
             else
-              raise
+              answered = true
+              error "Error in HTTP request: #{ $!.inspect }!"
             end
           end
         end
@@ -180,6 +177,7 @@ module API
         end
         @last_call = Time::new
       end
+      # TODO: переделать рекурсию в итерации
       if block_given?
         rr = []
         result.each do |js_object|

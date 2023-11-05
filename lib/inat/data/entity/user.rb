@@ -8,7 +8,10 @@ autoload :Observation, 'inat/data/entity/observation'
 
 class User < Entity
 
-  path :users
+  api_path :users
+  api_part :path
+  api_limit 1
+
   table :users
 
   field :login, type: String, index: true, required: true

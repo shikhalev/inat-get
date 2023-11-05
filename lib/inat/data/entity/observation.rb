@@ -23,7 +23,10 @@ autoload :Vote,             'inat/data/entity/vote'
 
 class Observation < Entity
 
-  path :observations
+  api_path :observations
+  api_part :query
+  api_limit 200
+
   table :observations
 
   field :quality_grade, type: QualityGrade, required: true, index: true

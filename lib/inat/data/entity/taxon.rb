@@ -14,7 +14,10 @@ autoload :Observation, 'inat/data/entity/observation'
 
 class Taxon < Entity
 
-  path :taxa
+  api_path :taxa
+  api_part :query
+  api_limit 200
+
   table :taxa
 
   field :is_active, type: Boolean, index: true
@@ -35,9 +38,9 @@ class Taxon < Entity
   field :default_photo, type: Photo
   field :taxon_changes_count, type: Integer
   field :taxon_schemes_count, type: Integer
-  field :observations_count, type: Integer
+  # field :observations_count, type: Integer
   field :photos_locked, type: Boolean
-  field :universal_search_rank, type: Integer
+  # field :universal_search_rank, type: Integer
   field :wikipedia_url, type: URI
   field :wikipedia_summary, type: String
   field :iconic_taxon_name, type: IconicTaxa, index: true
@@ -65,9 +68,15 @@ class Taxon < Entity
   ignore :establishment_means
   ignore :preferred_establishment_means
 
+  ignore :observations_count
+  ignore :universal_search_rank
+
   def === other
     other.id == self.id || other.ancestor_ids.include?(self.id)
   end
 
+  # def ancestors= value
+
+  # end
 
 end
