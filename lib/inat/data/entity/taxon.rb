@@ -75,6 +75,10 @@ class Taxon < Entity
     other.id == self.id || other.ancestor_ids.include?(self.id)
   end
 
+  def sort_key
+    [ iconic_taxon_name, name ]
+  end
+
   # def ancestors= value
 
   # end

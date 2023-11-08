@@ -274,6 +274,10 @@ end
 
 class NilClass
 
+  def self.parse src
+    nil
+  end
+
   def to_db
     nil
   end

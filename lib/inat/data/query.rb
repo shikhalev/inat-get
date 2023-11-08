@@ -968,9 +968,9 @@ class Query
       # when :out_of_range not supported
       # when :pcid not supported
       # when :ofv_datatype not supported
-      # when :site_id not supported
-      # when :term_id not supported
-      # when :term_value_id not supported
+      # TODO: when :site_id not supported
+      # TODO: when :term_id not supported
+      # TODO: when :term_value_id not supported
       # when :without_term_id not supported
       # when :without_term_value_id not supported
       # TODO: when :with_term_value_id not supported
@@ -1059,6 +1059,7 @@ class Query
   end
 
   def observations
+    # $SHOW_SAVES = false
     request = nil
     current_time = nil
     mode = G.config[:data][:update]
@@ -1094,8 +1095,6 @@ class Query
         tt = nil
         cc = 0
         current_time = Time::new
-        # NEED: remove
-        # params[:id_above] = 144169417
         API::query(:observations, **params) do |json, total|
           tt ||= total
           cc += 1
@@ -1121,6 +1120,7 @@ class Query
       end
     end
     # TODO: разобраться, где тупня
+    # $SHOW_SAVES = true
     sql, sql_args = db_where
     result = Observation::from_db_rows(DB.execute("SELECT * FROM observations o#{ sql.empty? && '' || ' WHERE ' }#{ sql };", *sql_args))
     if !@r_match.empty?

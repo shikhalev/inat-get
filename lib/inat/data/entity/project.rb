@@ -19,6 +19,8 @@ autoload :Taxon,                  'inat/data/entity/taxon'
 
 class Project < Entity
 
+  extend BySLUG
+
   api_path :projects
   api_part :query
   api_limit 200

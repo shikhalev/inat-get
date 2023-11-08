@@ -36,4 +36,8 @@ class User < Entity
   ignore :roles                   # TODO: разобраться
   ignore :preferences
 
+  def sort_key
+    login
+  end
+
 end

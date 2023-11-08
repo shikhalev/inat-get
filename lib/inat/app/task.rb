@@ -43,18 +43,12 @@ class Task
     return [ basename, name ]
   end
 
-  attr_reader :config, :logger, :cache
-
   def config
     @application.config
   end
 
   def logger
     @application.logger
-  end
-
-  def cache
-    @application.cache
   end
 
   def name
@@ -72,12 +66,9 @@ class Task
     @context = Task::Context::new self, @basename, @path
   end
 
-  def start
-    slf = self
-    Thread::start do
-      G.current_task = slf
-      @context.execute
-    end
+  def execute
+    G.current_task = self
+    @context.execute
   end
 
 end

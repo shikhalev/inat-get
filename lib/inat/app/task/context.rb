@@ -7,7 +7,6 @@ class Task::Context
   include Task::DSL
 
   attr_accessor :name
-  attr_reader :config, :logger, :cache
 
   def config
     @task.config
@@ -15,10 +14,6 @@ class Task::Context
 
   def logger
     @task.logger
-  end
-
-  def cache
-    @task.cache
   end
 
   def done?

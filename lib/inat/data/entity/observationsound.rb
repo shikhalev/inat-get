@@ -6,6 +6,11 @@ require_relative '../types/std'
 require_relative '../types/extras'
 require_relative '../entity'
 
+# require_relative 'observation'
+# require_relative 'sound'
+
+# class Observation < Entity; end
+
 autoload :Observation, 'inat/data/entity/observation'
 autoload :Sound,       'inat/data/entity/sound'
 

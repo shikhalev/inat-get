@@ -63,6 +63,10 @@ class Entity < Model
       result
     end
 
+    def by_id id
+      fetch(id).first
+    end
+
     # TODO: подумать о переименовании
     def from_db_rows data
       result = []
@@ -115,12 +119,11 @@ class Entity < Model
 
     def parse src
       return nil if src == nil
-      # FIXME: откуда-то берутся левые значения
-      # raise TypeError, "Source must be a Hash! (#{ src.inspect })" unless Hash === src
-      if !(Hash === src)
-        warning "INVALID SOURCE for #{ self }: #{ src.inspect }"
-        return nil
-      end
+      raise TypeError, "Source must be a Hash! (#{ src.inspect })" unless Hash === src
+      # if !(Hash === src)
+      #   warning "INVALID SOURCE for #{ self }: #{ src.inspect }"
+      #   return nil
+      # end
       id = src[:id] || src['id']
       raise ArgumentError, "Source must have an Integer 'id' value!", caller unless Integer === id
       fields = self.fields
@@ -180,7 +183,7 @@ class Entity < Model
     return self if @saved
     # debug "Save #{ self.class.name } id = #{ self.id } saved = #{ @saved.inspect }"
     @s_count += 1
-    # echo "Saving count = #{ @s_count } [#{ self.class }: #{ self.id }]" if @s_count > 1
+    # echo "Saving count = #{ @s_count } [#{ self.class }: #{ self.id }]" if @s_count > 1 && $SHOW_SAVES
     @saved = true
     names = []
     values = []
@@ -241,6 +244,28 @@ class Entity < Model
 
   def to_db
     self.id
+  end
+
+end
+
+module BySLUG
+
+  def by_slug slug
+    @entities ||= {}
+    results = @entities.values.select { |e| e.slug == slug }
+    if results.empty?
+      data = DB.execute "SELECT * FROM #{ table } WHERE slug = ?", slug.to_s
+      results = from_db_rows data
+    end
+    if results.empty?
+      data = API.get @api_path, :path, 1, slug
+      results = data.map { |d| parse(d) }
+    end
+    if results.empty?
+      nil
+    else
+      results.first
+    end
   end
 
 end

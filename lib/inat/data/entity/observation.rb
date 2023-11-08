@@ -116,6 +116,24 @@ class Observation < Entity
     end
   end
 
+  def normalized_taxon ranks
+    ranks = (ranks .. ranks) if Rank === ranks
+    raise TypeError, "Invalid type for ranks: #{ ranks.inspect }!", caller unless Range === ranks
+    min = ranks.begin
+    # max = ranks.end
+    taxon = self.taxon
+    while true do
+      return nil if taxon == nil
+      return nil if taxon.rank < min
+      return taxon if ranks === taxon.rank
+      taxon = taxon.parent
+    end
+  end
+
+  def sort_key
+    time_observed_at
+  end
+
   ignore :tags                # TODO: implement
   ignore :created_time_zone   # TODO: подумать...
   ignore :observed_time_zone

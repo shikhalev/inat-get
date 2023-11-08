@@ -6,6 +6,9 @@ require_relative '../types/std'
 require_relative '../types/extras'
 require_relative '../entity'
 
+# require_relative 'observation'
+# require_relative 'photo'
+
 autoload :Observation, 'inat/data/entity/observation'
 autoload :Photo,       'inat/data/entity/photo'
 

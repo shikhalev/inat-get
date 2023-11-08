@@ -6,14 +6,15 @@ require 'pp'
 # require 'extra/enum'
 
 require 'inat/app/application'
+require 'inat/app/globals'
 require 'inat/data/entity/observation'
 require 'inat/data/entity/request'
 require 'inat/data/db'
 require 'inat/data/query'
 
 app = Application.new
-
-PP::pp app, $>, 64
+app.run
+# PP::pp Globals.config, $>, 64
 
 # puts
 # puts DDL.DDL
@@ -35,8 +36,8 @@ PP::pp app, $>, 64
 # W, [2023-11-02T01:54:41.818021 #8118]  WARN -- ‹main›: Some Taxon IDs were not fetched: 48460, 1, 47120, 245097, 47119, 47118, 120474, 342614, 319384, 67599, 495875, 153683, 153680, 367182, 48893, 1252003, 60920!
 # W, [2023-11-02T03:49:58.509031 #8118]  WARN -- ‹main›: Some Taxon IDs were not fetched: 1, 47118, 47119, 47120, 48460, 48893, 60920, 67599, 120474, 153680, 153683, 245097, 319384, 342614, 367182, 495875, 1252003!
 
-query = Query::new project_id: 180212
-PP::pp query.observations.size, $>, 64
+# query = Query::new project_id: 180212
+# PP::pp query.observations.size, $>, 64
 
 # require 'inat/data/types/apiquery'
 

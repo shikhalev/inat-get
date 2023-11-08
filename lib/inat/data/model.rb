@@ -244,7 +244,7 @@ class Model
           if ni.intern == :ancestor_ids
             prevalue&.delete(self.id)
             value&.delete(self.id)
-            if value != nil && value[0] != 48460
+            if value != nil && !value.include?(48460)
               value.prepend 48460
             end
           end

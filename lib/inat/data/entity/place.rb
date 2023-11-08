@@ -9,6 +9,8 @@ autoload :Observation, 'inat/data/entity/observation'
 
 class Place < Entity
 
+  extend BySLUG
+
   api_path :places
   api_part :path
   api_limit 500
@@ -31,6 +33,10 @@ class Place < Entity
 
   def === other
     self.id == other.id && other.ancestor_place_ids.include?(self.id)
+  end
+
+  def sort_key
+    display_name
   end
 
   class << self
