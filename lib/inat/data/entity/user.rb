@@ -40,4 +40,22 @@ class User < Entity
     login
   end
 
+  def self.by_login login
+    @entities ||= {}
+    results = @entities.values.select { |e| e.login == login.to_s }
+    if results.empty?
+      data = DB.execute "SELECT * FROM users WHERE login = ?", login.to_s
+      results = from_db_rows data
+    end
+    if results.empty?
+      data = API.query 'users/autocomplete', first_only: true, q: login
+      results = data.select { |u| u['login'] == login.to_s }.map { |d| parse(d) }
+    end
+    if results.empty?
+      nil
+    else
+      results.first
+    end
+  end
+
 end

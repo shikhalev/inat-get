@@ -112,7 +112,7 @@ module API
       url
     end
 
-    def query path, **params, &block
+    def query path, first_only: false, **params, &block
       para = params.dup
       para.delete_if { |key, _| key.intern == :page }
       para[:per_page] = RECORDS_LIMIT
@@ -154,7 +154,7 @@ module API
                 paged = data["per_page"]
                 time_diff = Time::new - last_time
                 debug "QUERY OK: total = #{ total } paged = #{ paged } time = #{ time_diff } "
-                if total > paged
+                if total > paged && !first_only
                   max = result.map { |o| o["id"] }.max
                   rest = para
                   rest[:id_above] = max

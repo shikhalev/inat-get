@@ -252,7 +252,7 @@ module BySLUG
 
   def by_slug slug
     @entities ||= {}
-    results = @entities.values.select { |e| e.slug == slug }
+    results = @entities.values.select { |e| e.slug == slug.intern }
     if results.empty?
       data = DB.execute "SELECT * FROM #{ table } WHERE slug = ?", slug.to_s
       results = from_db_rows data

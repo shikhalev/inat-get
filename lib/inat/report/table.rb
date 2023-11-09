@@ -1,0 +1,112 @@
+# frozen_string_literal: true
+
+class Table
+
+  attr_reader :columns, :rows
+
+  def initialize
+    @columns = []
+    @rows = []
+    @line_no = 0
+  end
+
+  def column title, width: nil, align: nil, data: nil, &block
+    if data == nil && !block_given?
+      raise ArgumentError, "Data argument or block must be provided!", caller
+    end
+    @columns << {
+      title: title,
+      width: width,
+      align: align,
+      data:  data,
+      block: block
+    }
+  end
+
+  private :column
+
+  def row **data
+    @line_no += 1
+    data[:line_no] = @line_no
+    @rows << data
+  end
+
+  alias :<< :row
+
+  private def th column
+    style = ""
+    case column[:width]
+    when Numeric
+      style += "width:#{ column[:width] }em;"
+    when String
+      style += "width:#{ column[:width] };"
+    end
+    style += "text-align:#{ column[:align] };" if column[:align]
+    if style.empty?
+      "<th>#{ column[:title] }</th>"
+    else
+      "<th style=\"#{ style }\">#{ column[title] }</th>"
+    end
+  end
+
+  private def header
+    result = []
+    result << "<tr>"
+    result += @columns.map { |c| th(c) }
+    result << "</tr>"
+    result.join ""
+  end
+
+  private def td column, row
+    inner = case column[:data]
+    when String, Symbol
+      row[column[:data].intern]
+    when Proc
+      column[:data].call row
+    when nil
+      column[:block].call row
+    end
+    inner = inner.to_html if inner.respond_to?(:to_html)
+    style = ""
+    case column[:width]
+    when Numeric
+      style += "width:#{ column[:width] }em;"
+    when String
+      style += "width:#{ column[:width] };"
+    end
+    style += "text-align:#{ column[:align] };" if column[:align]
+    if style.empty?
+      "<td>#{ inner }</td>"
+    else
+      "<td style=\"#{ style }\">#{ inner }</td>"
+    end
+  end
+
+  private def row_to_html row
+    result = []
+    result << "<tr>"
+    result += @columns.map { |c| td(c, row) }
+    result << "</td>"
+    result.join "\n"
+  end
+
+  def to_html
+    result = []
+    result << "<table>"
+    result << header
+    result += @rows.map { |r| row_to_html(r) }
+    result << "</table>"
+    result.join "\n"
+  end
+
+end
+
+module TableDSL
+
+  private def table &block
+    tbl = Table::new
+    tbl.instance_eval &block if block_given?
+    tbl
+  end
+
+end
