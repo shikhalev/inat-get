@@ -58,6 +58,10 @@ class List
     @data.size
   end
 
+  def observation_count
+    @data.values.map { |ds| ds.count }.sum
+  end
+
   def where &block
     raise ArgumentError, "Block must be provided!", caller
     result = List::new [], @lister, sorter: @sorter, time: @time
@@ -109,7 +113,7 @@ class List
     result = List::new [], @lister, sorter: @sorter, time: @time
     # в принципе можно оптимизировать, но с понятностью будет не очень
     @data.each do |key, value|
-      if other.has_key?(key)
+      if other.include?(key)
         summa = value | other[key]
         summa.each do |observation|
           result << observation
@@ -128,12 +132,13 @@ class List
     result = List::new [], @lister, sorter: @sorter, time: @time
     # в принципе можно оптимизировать, но с понятностью будет не очень
     @data.each do |key, value|
-      if !other.has_key?(key)
+      if !other.include?(key)
         value.each do |observation|
           result << observation
         end
       end
     end
+    result
   end
 
 end

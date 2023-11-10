@@ -131,7 +131,7 @@ class Observation < Entity
   end
 
   def sort_key
-    time_observed_at
+    time_observed_at || observed_on.to_time
   end
 
   ignore :tags                # TODO: implement
@@ -159,5 +159,11 @@ class Observation < Entity
   ignore :project_ids_without_curator_id
   ignore :project_observations  # TODO: ???
   ignore :non_owner_ids
+  ignore :out_of_range
+  ignore :id_please
+
+  def to_s
+    "<a href=\"https://www.inaturalist.org/observations/#{ id }\">\##{ id }</a>"
+  end
 
 end

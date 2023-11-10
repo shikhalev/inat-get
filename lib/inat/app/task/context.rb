@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require_relative 'dsl'
+require_relative '../../report/table'
 
 class Task::Context
 
   include Task::DSL
+  include TableDSL
 
   attr_accessor :name
 

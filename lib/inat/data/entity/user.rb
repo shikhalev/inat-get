@@ -58,4 +58,8 @@ class User < Entity
     end
   end
 
+  def to_s
+    "<i class=\"glyphicon glyphicon-user\"></i> @#{ login }"
+  end
+
 end

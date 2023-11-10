@@ -2,7 +2,7 @@
 
 class Table
 
-  attr_reader :columns, :rows
+  attr_reader :columns
 
   def initialize
     @columns = []
@@ -10,16 +10,17 @@ class Table
     @line_no = 0
   end
 
-  def column title, width: nil, align: nil, data: nil, &block
+  def column title, width: nil, align: nil, data: nil, marker: false, &block
     if data == nil && !block_given?
       raise ArgumentError, "Data argument or block must be provided!", caller
     end
     @columns << {
-      title: title,
-      width: width,
-      align: align,
-      data:  data,
-      block: block
+      title:  title,
+      width:  width,
+      align:  align,
+      data:   data,
+      marker: marker,
+      block:  block
     }
   end
 
@@ -31,7 +32,22 @@ class Table
     @rows << data
   end
 
-  alias :<< :row
+  def rows *data
+    data.each do |r|
+      row(**r)
+    end
+    @rows
+  end
+
+  def << data
+    if Array === data
+      rows(*data)
+    elsif Hash === data
+      row(**data)
+    else
+      raise TypeError, "Invalid data type: #{ data.inspect }!", caller
+    end
+  end
 
   private def th column
     style = ""
@@ -45,7 +61,7 @@ class Table
     if style.empty?
       "<th>#{ column[:title] }</th>"
     else
-      "<th style=\"#{ style }\">#{ column[title] }</th>"
+      "<th style=\"#{ style }\">#{ column[:title] }</th>"
     end
   end
 
@@ -75,10 +91,15 @@ class Table
       style += "width:#{ column[:width] };"
     end
     style += "text-align:#{ column[:align] };" if column[:align]
+    marker = nil
+    if column[:marker]
+      anchor = row[:anchor]
+      marker = "<a name=\"#{ anchor }\"></a>"
+    end
     if style.empty?
-      "<td>#{ inner }</td>"
+      "<td>#{ marker }#{ inner }</td>"
     else
-      "<td style=\"#{ style }\">#{ inner }</td>"
+      "<td style=\"#{ style }\">#{ marker }#{ inner }</td>"
     end
   end
 
@@ -105,7 +126,7 @@ module TableDSL
 
   private def table &block
     tbl = Table::new
-    tbl.instance_eval &block if block_given?
+    tbl.instance_eval(&block) if block_given?
     tbl
   end
 

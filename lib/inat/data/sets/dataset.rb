@@ -12,7 +12,7 @@ class DataSet
   def initialize object, observations, time: Time::new
     @object = object
     @time = time
-    @observations = observations.sort_by { |o| (o.time_observed_at || o.observed_on.to_time) }.uniq
+    @observations = observations.sort_by { |o| o.sort_key }.uniq
     @sorted = true
     @by_id = {}
     @observations.each do |o|
@@ -24,7 +24,7 @@ class DataSet
 
   def each
     if block_given?
-      @observations.sort_by! { |o| o.time_observed_at } unless @sorted
+      @observations.sort_by! { |o| o.sort_key } unless @sorted
       @sorted = true
       @observations.each do |o|
         yield o
@@ -36,7 +36,7 @@ class DataSet
 
   def reverse_each
     if block_given?
-      @observations.sort_by! { |o| o.time_observed_at } unless @sorted
+      @observations.sort_by! { |o| o.sort_key } unless @sorted
       @sorted = true
       @observations.reverse_each do |o|
         yield o

@@ -79,8 +79,16 @@ class Taxon < Entity
     [ iconic_taxon_name, name ]
   end
 
-  # def ancestors= value
+  private def prepare_name name
+    name.downcase.gsub(' ', ' ').capitalize
+  end
 
-  # end
+  def to_s
+    if preferred_common_name
+      "<a href=\"https://www.inaturalist.org/taxa/#{ id }\"><i class=\"icon-iconic-#{ iconic_taxon_name.to_s.downcase }\" style=\"font-size:1.5em;height:1em;line-height:1em;\"></i> #{ prepare_name(preferred_common_name) } (#{ prepare_name(name) })</a>"
+    else
+      "<a href=\"https://www.inaturalist.org/taxa/#{ id }\"><i class=\"icon-iconic-#{ iconic_taxon_name.to_s.downcase }\" style=\"font-size:1.5em;height:1em;line-height:1em;\"></i> #{ prepare_name(name) }</a>"
+    end
+  end
 
 end
