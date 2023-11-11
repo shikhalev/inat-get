@@ -28,7 +28,7 @@ class Table
 
   def row **data
     @line_no += 1
-    data[:line_no] = @line_no
+    data[:line_no] ||= @line_no
     @rows << data
   end
 

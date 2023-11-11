@@ -59,7 +59,9 @@ class User < Entity
   end
 
   def to_s
-    "<i class=\"glyphicon glyphicon-user\"></i> @#{ login }"
+    title = ''
+    title = " title=\"#{ name }\"" if name
+    "<a#{ title } href=\"https://www.inaturalist.org/people/#{ id }\"><i class=\"glyphicon glyphicon-user\"></i></a> @#{ login }"
   end
 
 end
