@@ -85,7 +85,7 @@ class Observation < Entity
   field :month, type: Integer, index: true
   field :year, type: Integer, index: true
 
-  block :observed_on_details, type: Hash do |value|
+  block :observed_on_details, type: Object do |value|
     if Hash === value
       self.day   = value['day']
       self.month = value['month']
@@ -131,7 +131,7 @@ class Observation < Entity
   end
 
   def sort_key
-    time_observed_at || observed_on.to_time
+    time_observed_at || observed_on&.to_time || Time::at(0)
   end
 
   ignore :tags                # TODO: implement
