@@ -76,7 +76,7 @@ class Taxon < Entity
   end
 
   def sort_key
-    [ iconic_taxon_name, name ]
+    [ iconic_taxon_name || IconicTaxa::UNKNOWN, name ]
   end
 
   private def prepare_name name
