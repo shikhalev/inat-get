@@ -11,4 +11,4 @@ Only the [public API][api] is used in accordance with [the conditions][cond].
 
 ## Current status
 
-Preliminary development stage.
+Early alpha version.
