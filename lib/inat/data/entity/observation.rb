@@ -161,6 +161,9 @@ class Observation < Entity
   ignore :non_owner_ids
   ignore :out_of_range
   ignore :id_please
+  ignore :context_user_geoprivacy   # NEED: обязательно разобраться
+  ignore :context_geoprivacy
+  ignore :context_taxon_geoprivacy
 
   def to_s
     "<a href=\"https://www.inaturalist.org/observations/#{ id }\">\##{ id }</a>"
