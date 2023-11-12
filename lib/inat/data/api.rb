@@ -5,6 +5,7 @@ require 'uri'
 require 'net/http'
 
 require_relative '../app/globals'
+require_relative '../app/status'
 
 module API
 
@@ -15,6 +16,10 @@ module API
 
     include LogDSL
 
+    def init
+      @mutex = Mutex::new
+    end
+
     def get path, part, limit, *ids
       return [] if ids.empty?
       if ids.size > limit
@@ -23,7 +28,6 @@ module API
         return get(path, *head) + get(path, *rest)
       end
       result = []
-      @mutex ||= Mutex::new
       @mutex.synchronize do
         now = Time::new
         if @last_call && now - @last_call < FREQUENCY_LIMIT
@@ -53,7 +57,7 @@ module API
         http_options[:open_timeout] = open_timeout if open_timeout
         http_options[:read_timeout] = read_timeout if read_timeout
         answered = false
-        answer_count = 10
+        answer_count = 50
         last_time = Time::new
         until answered
           begin
@@ -73,15 +77,17 @@ module API
               end
             end
             answered = true
-          rescue OpenSSL::SSL::SSLError, Timeout::Error
+          rescue OpenSSL::SSL::SSLError, Timeout::Error, SocketError
             if answer_count > 0
               answer_count -= 1
               answered = false
               error "Error in HTTP request: #{ $!.inspect }, retry: #{ answer_count }."
+              # Status::status "Error in HTTP request: #{ $!.inspect }, retry: #{ answer_count }."
               sleep 2.0
             else
               answered = true
               error "Error in HTTP request: #{ $!.inspect }!"
+              # Status::status "Error in HTTP request: #{ $!.inspect }!"
             end
           end
         end
@@ -121,7 +127,6 @@ module API
       result = []
       rest = nil
       total = 0
-      @mutex ||= Mutex::new
       @mutex.synchronize do
         now = Time::new
         if @last_call && now - @last_call < FREQUENCY_LIMIT
@@ -139,7 +144,7 @@ module API
         http_options[:open_timeout] = open_timeout if open_timeout
         http_options[:read_timeout] = read_timeout if read_timeout
         answered = false
-        answer_count = 10
+        answer_count = 50
         last_time = Time::new
         until answered
           begin
@@ -164,11 +169,12 @@ module API
               end
             end
             answered = true
-          rescue OpenSSL::SSL::SSLError, Timeout::Error
+          rescue OpenSSL::SSL::SSLError, Timeout::Error, SocketError
             if answer_count > 0
               answer_count -= 1
               answered = false
               error "Error in HTTP request: #{ $!.inspect }, retry: #{ answer_count }."
+              # Status::status "Error in HTTP request: #{ $!.inspect }, retry: #{ answer_count }."
               sleep 2.0
             else
               raise
@@ -199,3 +205,5 @@ module API
   end
 
 end
+
+API::init

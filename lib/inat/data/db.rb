@@ -27,10 +27,10 @@ class DB
     @data.foreign_keys = true
     @data.execute_batch DDL.DDL
     ObjectSpace.define_finalizer self, self.class.get_finalizer(@data)
+    @mutex = Mutex::new
   end
 
   def execute query, *args
-    @mutex ||= Mutex::new
     @mutex.synchronize do
       # last_time = Time::new
       # info "DB: query = #{ query } args = #{ args.inspect }"
@@ -42,7 +42,6 @@ class DB
   end
 
   def execute_batch query
-    @mutex ||= Mutex::new
     @mutex.synchronize do
       # last_time = Time::new
       # info "DB: batch = #{ query }"

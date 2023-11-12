@@ -6,6 +6,7 @@ require 'date'
 require 'extra/period'
 
 require_relative '../app/globals'
+require_relative '../app/status'
 require_relative 'db'
 require_relative 'entity/request'
 require_relative 'enums/qualitygrade'
@@ -964,7 +965,7 @@ class Query
         parse_iconic_taxa value
       when :quality_grade
         parse_quality_grade value
-        # NEED: other properties
+      # TODO: other properties
       # when :out_of_range not supported
       # when :pcid not supported
       # when :ofv_datatype not supported
@@ -1103,10 +1104,10 @@ class Query
           te = (td * (tt - cc)).to_i
           pe = Period::make seconds: te
           pt = Period::make seconds: (Time::new - current_time).to_i
-          $stderr.printf "\rFetch: %d of %d - %d%% / %12s of %12s\r", cc, tt, pc, pt.to_s, pe.to_s
-          if (cc % 100) == 0
-            $stderr.puts ''
-          end
+          Status::status format("%7d  << %7d : %3d%% : %9s  << %9s", cc, tt, pc, pt.to_hs, pe.to_hs)
+          # if (cc % 100) == 0
+          #   $stderr.puts ''
+          # end
           obs = Observation::parse json
           olinks << "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (#{ request.id }, #{obs.id});"
           # DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
@@ -1132,7 +1133,7 @@ class Query
       end
       request.save
     end
-    $stderr.puts ''
+    Status::status "Some queries done."
     result
   end
 

@@ -63,7 +63,7 @@ class Taxon < Entity
   ignore :listed_taxa
   ignore :complete_rank
 
-  ignore :ancestry                            # NEED: сделать обязательно
+  ignore :ancestry                            # TODO: подумать и сделать обязательно
   ignore :min_species_ancestry
   ignore :establishment_means
   ignore :preferred_establishment_means

@@ -138,6 +138,14 @@ class Period
     result
   end
 
+  def to_hs
+    return "-#{abs.to_hs}" if @value < 0
+    h = hours all: true
+    m = minutes
+    s = seconds
+    format "%3d:%02d:%02d", h, m, s
+  end
+
   def inspect
     "\#<Period: #{to_s}>"
   end

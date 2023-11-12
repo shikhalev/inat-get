@@ -62,6 +62,7 @@ class List
     @data.values.map { |ds| ds.count }.sum
   end
 
+  # TODO: возможно, переделать на условие по датасету
   def where &block
     raise ArgumentError, "Block must be provided!", caller
     result = List::new [], @lister, sorter: @sorter, time: @time
@@ -76,6 +77,7 @@ class List
     result
   end
 
+  # TODO: сделать добавление массивов, датасетов и массивов датасетов
   def << observation
     key = @lister.call observation
     if key != nil

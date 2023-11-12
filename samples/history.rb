@@ -183,7 +183,9 @@ class History
     result << tops
     result << news
     result << missed
-    # NEED: implement
+    result << ''
+    result << '<hr>'
+    result << "<small>Отчет сгенерирован посредством <a href=\"#{ AppInfo::HOMEPAGE }\">INat::Get v#{ AppInfo::VERSION }</a>.</small>"
     result
   end
 
