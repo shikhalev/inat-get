@@ -32,7 +32,7 @@ class Task::Context
                 "    #{source_code}\n" +
                 "  rescue Exception => e\n" +
                 "    error \"\#{e.inspect}\"\n" +
-                "    debug \"\#{e.backtrace.join(\"\\n\\t\")}\"\n" +
+                "    error \"\#{e.backtrace.join(\"\\n\\t\")}\"\n" +
                 "  rescue\n" +
                 "    error 'Unknown error!'\n" +
                 "  end\n" +
