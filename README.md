@@ -1,3 +1,5 @@
+<img src="docs/logo.png" align="right" style="float:right;width:57%;">
+
 # INat::Get
 
 A toolset for fetching and processing data from **[iNaturalist.org][inat]**.
