@@ -34,11 +34,12 @@ class Task
     return false
   end
 
+  # TODO: переписать более внятно
   private def get_names source
     path = File.expand_path source
     basename = File.basename(source, '.*')
     return [ basename, existing(path) ] if name_complete?(source)
-    base = path + '/' + basename
+    base = path.split('/')[..-2].join('/') + '/' + basename
     name = try_extensions base, *FILE_CHECK_LIST
     return [ basename, name ]
   end
