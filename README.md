@@ -1,8 +1,4 @@
-<div style="float:right;width:50%;">
-
-![](docs/logo.png)
-
-</div>
+<img src="docs/logo.png" style="float:right;width:50%;">
 
 # INat::Get
 
