@@ -1,3 +1,5 @@
+![](docs/logo.png)
+
 # INat::Get
 
 A toolset for fetching and processing data from **[iNaturalist.org][inat]**.
