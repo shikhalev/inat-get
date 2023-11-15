@@ -1109,6 +1109,7 @@ class Query
           #   $stderr.puts ''
           # end
           obs = Observation::parse json
+          obs.save
           olinks << "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (#{ request.id }, #{obs.id});"
           # DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
         end

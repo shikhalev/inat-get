@@ -155,7 +155,8 @@ class Entity < Model
           end
         end
       end
-      entity.save
+      entity
+      # entity.save
     end
 
     def ddl
@@ -183,7 +184,7 @@ class Entity < Model
     return self if @saved
     # debug "Save #{ self.class.name } id = #{ self.id } saved = #{ @saved.inspect }"
     @s_count += 1
-    # echo "Saving count = #{ @s_count } [#{ self.class }: #{ self.id }]" if @s_count > 1 && $SHOW_SAVES
+    debug "Saving count = #{ @s_count } [#{ self.class }: #{ self.id }]" if @s_count > 1
     @saved = true
     names = []
     values = []
@@ -223,8 +224,13 @@ class Entity < Model
           olinks << "INSERT OR REPLACE INTO #{ field.table_name } (#{ field.back_field }, #{ field.link_field }) VALUES (#{ self.id }, #{ value.id });"
         end
         DB.execute_batch olinks.join("\n")
-        DB.execute "DELETE FROM #{ field.table_name } WHERE #{ field.back_field } = ? AND #{ field.link_field } NOT IN (#{ (['?'] * values.size).join(',') });",
-                    self.id, *values.map(&:id)
+        news = values.map(&:id)
+        olds = DB.execute("SELECT #{ field.link_field } as id FROM #{ field.table_name } WHERE #{ field.back_field } = ?;", self.id).map { |r| r['id'] }
+        diff = olds.filter { |o| !news.include?(o) }
+        if !diff.empty?
+          DB.execute "DELETE FROM #{ field.table_name } WHERE #{ field.back_field } = ? AND #{ field.link_field } IN (#{ (['?'] * diff.size).join(',') });",
+                      self.id, *diff
+        end
       end
       backs.each do |back|
         field = back[:field]
@@ -233,8 +239,13 @@ class Entity < Model
           value.send "#{ field.back_field }=", self.id
           value.save if value != self
         end
-        DB.execute "DELETE FROM #{ field.type.table } WHERE #{ field.back_field } = ? AND id NOT IN (#{ (['?'] * values.size).join(',') });",
-                    self.id, *values.map(&:id)
+        news = values.map(&:id)
+        olds = DB.execute("SELECT id FROM #{ field.type.table } WHERE #{ field.back_field } = ?;", self.id).map { |r| r['id'] }
+        diff = olds.filter { |o| !news.include?(o) }
+        if !diff.empty?
+          DB.execute "DELETE FROM #{ field.type.table } WHERE #{ field.back_field } = ? AND id IN (#{ (['?'] * diff.size).join(',') });",
+                      self.id, *diff
+        end
       end
     # end
     @saved = true

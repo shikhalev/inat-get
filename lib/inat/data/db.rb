@@ -17,37 +17,39 @@ class DB
   end
 
   def initialize
+    @mutex = Mutex::new
     @config = G.config
     @directory = @config[:data][:directory]
     FileUtils.mkpath @directory
     @data = SQLite3::Database::open "#{@directory}/inat-cache.db"
-    @data.encoding = 'UTF-8'
-    @data.auto_vacuum = 1
-    @data.results_as_hash = true
-    @data.foreign_keys = true
-    @data.execute_batch DDL.DDL
+    @mutex.synchronize do
+      @data.encoding = 'UTF-8'
+      @data.auto_vacuum = 1
+      @data.results_as_hash = true
+      @data.foreign_keys = true
+      @data.execute_batch DDL.DDL
+    end
     ObjectSpace.define_finalizer self, self.class.get_finalizer(@data)
-    @mutex = Mutex::new
   end
 
   def execute query, *args
     @mutex.synchronize do
-      # last_time = Time::new
-      # info "DB: query = #{ query } args = #{ args.inspect }"
+      last_time = Time::new
+      info "DB: query = #{ query } args = #{ args.inspect }"
       result = @data.execute query, args
-      # time_diff = Time::new - last_time
-      # debug "DB OK: count = #{ Array === result && result.size || 'none' } time = #{ time_diff }"
+      time_diff = Time::new - last_time
+      debug "DB OK: count = #{ Array === result && result.size || 'none' } time = #{ (time_diff * 1000000).to_i }ns"
       result
     end
   end
 
   def execute_batch query
     @mutex.synchronize do
-      # last_time = Time::new
-      # info "DB: batch = #{ query }"
-      @data.execute_batch query
-      # time_diff = Time::new - last_time
-      # debug "DB OK: time = #{ time_diff }"
+      last_time = Time::new
+      info "DB: batch = #{ query }"
+      @data.execute_batch "BEGIN TRANSACTION;\n" + query + "\nCOMMIT;\n"
+      time_diff = Time::new - last_time
+      debug "DB OK: time = #{ (time_diff * 1000000).to_i }ns"
     end
   end
 
