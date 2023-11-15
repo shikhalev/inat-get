@@ -1,5 +1,7 @@
 <div style="float:right;width:50%;">
+
 ![](docs/logo.png)
+
 </div>
 
 # INat::Get
