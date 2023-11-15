@@ -74,7 +74,7 @@ class Model
         md.define_method "#{ ni }=" do |value|
           prevalue = instance_variable_get "@#{ ni }"
           if prevalue != value
-            # debug "#{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" unless prevalue.nil?
+            debug "ASS: #{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" if prevalue != nil && self.class.name == 'Taxon'
             instance_variable_set "@#{ ni }", value
             instance_variable_set "@saved", false
           end
@@ -92,7 +92,7 @@ class Model
         md.define_method "#{ nm }=" do |value|
           prevalue = instance_variable_get "@#{ ni }"
           if prevalue != value&.id
-            # debug "#{ self.id }: #{ nm } / #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" unless prevalue.nil?
+            debug "ASS: #{ self.id }: #{ nm } / #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" if prevalue != nil && self.class.name == 'Taxon'
             instance_variable_set "@#{ ni }", value&.id
             instance_variable_set "@saved", false
           end
@@ -105,7 +105,7 @@ class Model
           raise TypeError, "Invalid '#{ nm }' value: #{ value.inspect }!", caller unless tp === value || (value == nil && !rq)
           prevalue = instance_variable_get "@#{ nm }"
           if prevalue != value
-            # debug "#{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect }" unless prevalue.nil?
+            debug "ASS: #{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect }" if prevalue != nil && self.class.name == 'Taxon'
             instance_variable_set "@#{ nm }", value
             instance_variable_set "@saved", false
           end
@@ -244,12 +244,11 @@ class Model
           if ni.intern == :ancestor_ids
             prevalue&.delete(self.id)
             value&.delete(self.id)
-            if value != nil && !value.include?(48460)
-              value.prepend 48460
-            end
+            value&.prepend 48460
+            value = value&.sort.uniq
           end
-          if prevalue&.sort != value&.sort
-            # debug "#{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" unless prevalue.nil?
+          if prevalue != value
+            debug "ASS: #{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" if prevalue != nil && self.class.name == 'Taxon'
             instance_variable_set "@#{ ni }", value
             instance_variable_set "@saved", false
           end
@@ -262,7 +261,7 @@ class Model
           # value.each do |v|
           #   raise TypeError, "Invalid #{ nm } value: #{ v.inspect }!", caller unless tp === v
           # end
-          instance_variable_set "@#{ ni }", value.map(&:id)
+          self.send "#{ ni }=", value.map(&:id)
         end
       else
         md.define_method "#{ nm }" do
@@ -275,7 +274,7 @@ class Model
           end
           prevalue = instance_variable_get("@#{ nm }")
           if prevalue&.sort != value&.sort
-            # debug "#{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" unless prevalue.nil?
+            debug "ASS: #{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" if prevalue != nil && self.class.name == 'Taxon'
             instance_variable_set "@#{ nm }", value
             instance_variable_set "@saved", false
           end

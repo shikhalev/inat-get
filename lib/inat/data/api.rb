@@ -73,11 +73,12 @@ module API
                 time_diff = Time::new - last_time
                 debug "GET OK: total = #{ total } paged = #{ paged } time = #{ time_diff } "
               else
-                error "Bad response: #{ response.inspect }!"
+                error "Bad response om #{ uri.path }#{ uri.query && !uri.query.empty? && '?' + uri.query || '' }: #{ response.inspect }!"
+                result = [ { 'id' => ids.first } ]
               end
             end
             answered = true
-          rescue OpenSSL::SSL::SSLError, Timeout::Error, SocketError
+          rescue Exception
             if answer_count > 0
               answer_count -= 1
               answered = false
@@ -169,7 +170,7 @@ module API
               end
             end
             answered = true
-          rescue OpenSSL::SSL::SSLError, Timeout::Error, SocketError
+          rescue Exception
             if answer_count > 0
               answer_count -= 1
               answered = false
