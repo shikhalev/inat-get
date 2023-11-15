@@ -51,6 +51,17 @@ class Application
 
   CONFIG_FILE = File.expand_path "~/.config/#{ NAME }.yml"
 
+  private def parse_files files
+    files.map do |file|
+      if file.start_with?('@')
+        list = file[1..]
+        File.readlines(list, chomp: true).filter { |l| !l.empty? }
+      else
+        file
+      end
+    end.flatten
+  end
+
   private def parse_args!
     options = {}
     opts = OptionParser::new USAGE do |o|
@@ -266,7 +277,7 @@ class Application
                   "\t\t\t\t     If name has not extension try to read '‹task›' than '‹task›.inat' than '‹task›.rb'."
 
     end
-    files = opts.parse ARGV
+    files = parse_files(opts.parse(ARGV))
     [ options, files ]
   end
 
