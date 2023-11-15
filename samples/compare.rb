@@ -129,7 +129,7 @@ class Compare
     result = []
     result << '<h1>Сравнение с соседями</h1>'
     result << ''
-    result << 'Сравнение выполненялость со следующими территориями:'
+    result << 'Сравнение выполнялось со следующими территориями:'
     result << ''
     result << neighbours_ul
     result << ''
