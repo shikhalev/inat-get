@@ -1,4 +1,4 @@
-<img src="docs/logo.png" align="right" style="float:right;width:50%;">
+<img src="docs/logo.png" align="right" style="float:right;width:60%;">
 
 # INat::Get
 
