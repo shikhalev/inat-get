@@ -1,4 +1,4 @@
-![](docs/logo.png)
+![](docs/logo.png){:style="float:right;width:50%;"}
 
 # INat::Get
 
