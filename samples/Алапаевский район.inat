@@ -1,0 +1,36 @@
+
+require './compare'
+require './history'
+
+inner_slugs = [ 'munitsipalnoe-obrazovanie-gorod-alapaevsk', 'alapaevskoe-munitsipalnoe-obrazovanie', 'mahnyovskoe-munitsipalnoe-obrazovanie' ]
+outer_slugs = [
+  'artyomovskiy-gorodskoy-okrug-osm-2023',
+  'verhnesaldinskiy-gorodskoy-okrug',
+  'verhoturskiy-gorodskoy-okrug',
+  'garinskiy-gorodskoy-okrug',
+  'irbitskoe-munitsipalnoe-obrazovanie',
+  'gorodskoy-okrug-nizhnyaya-salda',
+  'gornouralskiy-gorodskoy-okrug',
+  'rezhevskoy-gorodskoy-okrug',
+  'sosvinskiy-gorodskoy-okrug',
+  'taborinskiy-munitsipalnyy-rayon',
+  'turinskiy-gorodskoy-okrug'
+]
+
+inner_places = inner_slugs.map { |nm| Place::by_slug(nm) }
+inner_dataset = inner_places.map { |p| select(place_id: p.id, quality_grade: QualityGrade::RESEARCH) }.reduce(DataSet::new(nil, []), :|)
+inner_list  = inner_dataset.to_list
+
+outer_places = outer_slugs.map { |nm| Place::by_slug(nm) }
+outer_lists = {}
+outer_places.each do |place|
+  place_dataset = select(place_id: place.id, quality_grade: QualityGrade::RESEARCH)
+  place_list = place_dataset.to_list Listers::SPECIES
+  outer_lists[place] = place_list
+end
+
+compare = Compare::new name, inner_list, outer_lists
+compare.write
+
+history = History::new name, inner_dataset
+history.write
