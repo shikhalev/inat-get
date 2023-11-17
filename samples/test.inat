@@ -1,0 +1,4 @@
+
+require './region'
+
+puts DISTRICTS.size
