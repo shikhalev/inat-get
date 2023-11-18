@@ -51,7 +51,7 @@ class Place < Entity
   end
 
   def to_s
-    "<a href=\"https://www.inaturalist.org/places/#{ id }\"><i class=\"fa fa-map-marker\"></i> #{ display_name || name }</a>"
+    "<a href=\"https://www.inaturalist.org/places/#{ id }\"><i class=\"fa fa-globe\"></i>  #{ display_name || name }</a>"
   end
 
 end

@@ -1,7 +1,7 @@
 require './region'
 require './finish'
 
-district = District::new 'bioraznoobrazie-nizhnego-tagila', FINISH_DATE
+district = District::new 'bioraznoobrazie-slobodo-turinskogo-rayona', FINISH_DATE
 district.write_history
 district.write_compare
 district.write_rare

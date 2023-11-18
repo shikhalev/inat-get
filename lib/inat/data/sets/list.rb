@@ -22,6 +22,10 @@ class List
     end
   end
 
+  def self.zero lister = Listers::SPECIES
+    new [], lister
+  end
+
   include Enumerable
 
   def [] key

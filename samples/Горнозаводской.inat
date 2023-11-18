@@ -1,0 +1,7 @@
+require './region'
+require './finish'
+
+zone = Zone::new 'bioraznoobrazie-gornozavodskogo-okruga-sverdlovskoy-oblasti', FINISH_DATE
+zone.write_history
+zone.write_compare
+zone.write_rare

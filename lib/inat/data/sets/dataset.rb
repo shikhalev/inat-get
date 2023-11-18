@@ -20,6 +20,10 @@ class DataSet
     end
   end
 
+  def self.zero
+    new nil, []
+  end
+
   include Enumerable
 
   def each

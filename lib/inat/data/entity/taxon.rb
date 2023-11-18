@@ -85,9 +85,9 @@ class Taxon < Entity
 
   def to_s
     if preferred_common_name
-      "<a href=\"https://www.inaturalist.org/taxa/#{ id }\"><i class=\"icon-iconic-#{ (iconic_taxon_name || IconicTaxa::UNKNOWN).to_s.downcase }\" style=\"font-size:1.5em;height:1em;line-height:1em;\"></i> #{ prepare_name(preferred_common_name) } (#{ prepare_name(name) })</a>"
+      "<a href=\"https://www.inaturalist.org/taxa/#{ id }\"><i class=\"icon-iconic-#{ (iconic_taxon_name || IconicTaxa::UNKNOWN).to_s.downcase }\" style=\"font-size:1.5em;height:1em;line-height:1em;\"></i> #{ prepare_name(preferred_common_name) } <i>(#{ prepare_name(name) })</i></a>"
     else
-      "<a href=\"https://www.inaturalist.org/taxa/#{ id }\"><i class=\"icon-iconic-#{ (iconic_taxon_name || IconicTaxa::UNKNOWN).to_s.downcase }\" style=\"font-size:1.5em;height:1em;line-height:1em;\"></i> #{ prepare_name(name) }</a>"
+      "<a href=\"https://www.inaturalist.org/taxa/#{ id }\"><i class=\"icon-iconic-#{ (iconic_taxon_name || IconicTaxa::UNKNOWN).to_s.downcase }\" style=\"font-size:1.5em;height:1em;line-height:1em;\"></i> <i>#{ prepare_name(name) }</i></a>"
     end
   end
 

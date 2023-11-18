@@ -87,5 +87,8 @@ class Project < Entity
   ignore :search_parameters
   ignore :rule_preferences
 
+  def to_s
+    "<a href=\"https://www.inaturalist.org/projects/#{ id }\"><i class=\"fa fa-briefcase\"></i>  #{ title }</a>"
+  end
 
 end
