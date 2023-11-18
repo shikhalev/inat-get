@@ -66,27 +66,44 @@ class List
     @data.values.map { |ds| ds.count }.sum
   end
 
-  # TODO: возможно, переделать на условие по датасету
   def where &block
-    raise ArgumentError, "Block must be provided!", caller
+    raise ArgumentError, "Block must be provided!", caller unless block_given?
     result = List::new [], @lister, sorter: @sorter, time: @time
-    # в принципе можно оптимизировать, но с понятностью будет не очень
     self.each do |ds|
-      ds.each do |observation|
-        if block.call(observation)
-          result << observation
-        end
-      end
+      result << ds if yield(ds)
     end
     result
   end
 
-  # TODO: сделать добавление массивов, датасетов и массивов датасетов
-  def << observation
-    key = @lister.call observation
-    if key != nil
-      @data[key] ||= DataSet::new key, [], time: @time
-      @data[key] << observation
+  def << some
+    case some
+    when Observation
+      key = @lister.call some
+      if key != nil
+        @data[key] ||= DataSet::new key, [], time: @time
+        @data[key] << some
+      end
+    when DataSet
+      if !some.empty?
+        valid = some.object != nil && some.all? { |o| @lister.call(o) == some.object }
+        if valid
+          if @data[some.object]
+            @data[some.object] = @data[some.object] | some
+          else
+            @data[some.object] = some
+          end
+        else
+          some.each do |o|
+            self << o
+          end
+        end
+      end
+    when Array
+      some.each do |o|
+        self << o
+      end
+    else
+      raise TypeError, "Can not add this object: #{ some.inspect }!", caller
     end
   end
 

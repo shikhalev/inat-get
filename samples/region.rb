@@ -1127,7 +1127,7 @@ class Area
 
   private def gen_wanted
     wanted_ls = @neighbours_ls - @main_ls
-    # TODO: сделать нормально внутри List — быструю фильтрацию
+    # TODO: переделать на where
     double_dss = wanted_ls.filter { |ds| neighbour_count(ds.object) >= 2 }
     double_ls = double_dss.sort_by { |ds| ds.count }.reverse.take(50).reduce(DataSet::zero, :|).to_list
     if !double_ls.empty?
@@ -1178,7 +1178,7 @@ class Area
   end
 
   def gen_alones
-    alones = @main_ls.filter { |ds| ds.count == 1 }.reduce(DataSet::zero, :|).to_list
+    alones = @main_ls.where { |ds| ds.count == 1 }
     result = []
     if !alones.empty?
       result << "<h4>Только одно подтвержденное наблюдение</h4>"
