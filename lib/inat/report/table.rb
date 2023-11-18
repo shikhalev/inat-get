@@ -105,7 +105,7 @@ class Table
 
   private def row_to_html row
     result = []
-    result << "<tr>"
+    result << "<tr#{ row[:style] ? " style=\"#{ row[:style] }\"" : '' }>"
     result += @columns.map { |c| td(c, row) }
     result << "</td>"
     result.join "\n"
