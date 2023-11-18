@@ -1,7 +1,0 @@
-require './region'
-require './finish'
-
-special = Special::new 'mezhmunitsipalnoe-bioraznoobrazie-sverdlovskoy-oblasti', FINISH_DATE
-special.write_history
-special.write_unique
-special.write_radiuses

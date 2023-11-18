@@ -1,7 +1,0 @@
-require './region'
-require './finish'
-
-district = District::new 'bioraznoobrazie-kirovgrada-i-verhnego-tagila', FINISH_DATE
-district.write_history
-district.write_compare
-district.write_rare

@@ -865,6 +865,7 @@ class Area
 
   include Task::DSL
   include TableDSL
+  include AppInfo
 
   def initialize top_count, top_limit
     @top_count = top_count
@@ -883,7 +884,9 @@ class Area
       column 'Виды', width: 6, align: :right, data: :species
       column 'Новые', width: 6, align: :right, data: :news
     end
-    @main_ds = @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)) }.reduce(DataSet::zero, :|)
+    @full_ds = @projects.map { |pr| select(project_id: pr.id, quality_grade: [ QualityGrade::RESEARCH, QualityGrade::NEEDS_ID ], date: (.. @finish)) }.reduce(DataSet::zero, :|)
+    @main_ds = @full_ds.where { |o| o.quality_grade == QualityGrade::RESEARCH }
+    # @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)) }.reduce(DataSet::zero, :|)
     @seasons = @main_ds.to_list Listers::YEAR
     olds = List::zero
     @last_year = nil
@@ -1006,7 +1009,7 @@ class Area
   end
 
   private def gen_news
-    return "<i>В сезоне #{ @last_year } новых таксонов не наблюдалось.</i>" if @delta.empty?
+    return "<i>В сезоне #{ @last_year.year } новых таксонов не наблюдалось.</i>" if @delta.empty?
     result = []
     result << "<h2>Новинки</h2>"
     result << ""
@@ -1030,6 +1033,10 @@ class Area
     result.join "\n"
   end
 
+  private def gen_signature
+    "\n<hr>\n\n<small>Отчет сгенерирован посредством <a href=\"https://github.com/shikhalev/inat-get\">INat::Get v#{ VERSION }</a></small>"
+  end
+
   private def generate_history
     result = []
     result << "<h1>Итоги сезона #{ season }</h1>"
@@ -1049,6 +1056,8 @@ class Area
     result << gen_news
     result << ""
     result << gen_lost
+    result << ""
+    result << gen_signature
     result.join "\n"
   end
 
@@ -1066,7 +1075,7 @@ class Area
     end
   end
 
-  private def gen_neighbors
+  private def gen_neighbours
     neighbours_table = table do
       column '#', width: 3, align: :right, data: :line_no
       column 'Место', data: :place
@@ -1087,10 +1096,55 @@ class Area
       @n_lists << ls
       neighbour_rows << { place: pl, species: ls.count, observations: ds.count }
     end
-    @n_list = @n_lists.reduce List::zero, :+
-    neighbour_rows << { line_no: '', place: '', species: @n_list.count, observations: @n_list.observation_count, style: 'font-weight:bold;' }
+    @neighbours_ls = @n_lists.reduce List::zero, :+
+    neighbour_rows << { line_no: '', place: '', species: @neighbours_ls.count, observations: @neighbours_ls.observation_count, style: 'font-weight:bold;' }
     neighbours_table << neighbour_rows
     neighbours_table.to_html
+  end
+
+  private def gen_unique
+    unique_ls = @main_ls - @neighbours_ls
+    if !unique_ls.empty?
+      result = []
+      result << "<h2>«Уники»</h2>"
+      result << ""
+      result << "Таксоны, наблюдаемые здесь, но не найденные у соседей."
+      result << ""
+      result << gen_table(unique_ls, observers: 'Наблюдатели «уников»')
+      result.join "\n"
+    else
+      ''
+    end
+  end
+
+  private def neighbour_count taxon
+    result = 0
+    @n_lists.each do |n|
+      result += 1 if n.include?(taxon)
+    end
+    result
+  end
+
+  private def gen_wanted
+    wanted_ls = @neighbours_ls - @main_ls
+    # TODO: сделать нормально внутри List — быструю фильтрацию
+    double_dss = wanted_ls.filter { |ds| neighbour_count(ds.object) >= 2 }
+    double_ls = double_dss.sort_by { |ds| ds.count }.reverse.take(50).reduce(DataSet::zero, :|).to_list
+    if !double_ls.empty?
+      result = []
+      result << "<h2>«Разыскиваются»</h2>"
+      result << ""
+      if double_dss.size <= 50
+        result << "Таксоны, найденные как минимум у двух соседей, но не обнаруженнные здесь."
+      else
+        result << "Топ-50 (из #{ double_dss.size }) таксонов, найденных как минимум у двух соседей, но не обнаруженных здесь."
+      end
+      result << ""
+      result << gen_table(double_ls, observers: false)
+      result.join "\n"
+    else
+      ''
+    end
   end
 
   private def generate_compare
@@ -1099,8 +1153,13 @@ class Area
     result << ""
     result << "Сравнение выполнялось со следующими проектами/территориями:"
     result << ""
-    result << gen_neighbors
-    # NEED: implement
+    result << gen_neighbours
+    result << ""
+    result << gen_unique
+    result << ""
+    result << gen_wanted
+    result << ""
+    result << gen_signature
     result.join "\n"
   end
 
@@ -1118,7 +1177,55 @@ class Area
     end
   end
 
+  def gen_alones
+    alones = @main_ls.filter { |ds| ds.count == 1 }.reduce(DataSet::zero, :|).to_list
+    result = []
+    if !alones.empty?
+      result << "<h4>Только одно подтвержденное наблюдение</h4>"
+      result << ""
+      result << gen_table(alones, observers: false)
+    end
+    result.join "\n"
+  end
+
+  def gen_unconfirmed
+    all = @full_ds.to_list
+    unconfirmed = all - @main_ls
+    result = []
+    if !unconfirmed.empty?
+      result << "<h4>Только неподтвержденные наблюдения</h4>"
+      result << ""
+      result << gen_table(unconfirmed, observers: false)
+    end
+    result.join "\n"
+  end
+
+  private def generate_rare
+    result = []
+    result << "<h1>Виды, по которым недостаточно наблюдений</h1>"
+    result << ""
+    result << "Таксоны, наблюдений которых мало. Желательно обратить на них дополнительное внимание."
+    result << ""
+    result << gen_alones
+    result << ""
+    result << gen_unconfirmed
+    result << ""
+    result << gen_signature
+    result.join "\n"
+  end
+
   def write_rare file = nil
+    output = generate_rare
+    case file
+    when nil
+      File.write "#{ @name } - Недо.htm", output
+    when String
+      File.write file, output
+    when IO
+      file.write output
+    else
+      raise TypeError, "Invalid file: #{ file.inspect }!", caller
+    end
   end
 
 end
