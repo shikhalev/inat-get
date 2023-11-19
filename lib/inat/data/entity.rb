@@ -52,6 +52,12 @@ class Entity < Model
 
     def fetch *ids
       return [] if ids.empty?
+      # sids = if ids.size > 7
+      #   ids.take(7).map(&:to_s) + [ 'and more' ]
+      # else
+      #   ids.map(&:to_s)
+      # end
+      # Status::status '[fetch]', "#{ self } : " + sids.join(', ') + ' ...'
       result = ids.map { |id| get id }.filter { |x| x != nil }
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
       read(*nc_ids)
@@ -60,6 +66,7 @@ class Entity < Model
       nc_ids = result.select { |e| !e.complete? && !e.process? }.map(&:id)
       warning "Some #{ self } IDs were not fetched: #{ nc_ids.join(', ') }!" unless nc_ids.empty?
       # result = [ nil ] if result == []
+      # Status::status '[fetch]', "#{ self } : " + sids.join(', ') + ' DONE'
       result
     end
 
@@ -185,7 +192,6 @@ class Entity < Model
     # debug "Save #{ self.class.name } id = #{ self.id } saved = #{ @saved.inspect }"
     @s_count += 1
     debug "Saving count = #{ @s_count } [#{ self.class }: #{ self.id }]" if @s_count > 1
-    @saved = true
     names = []
     values = []
     links = []
@@ -214,6 +220,7 @@ class Entity < Model
     values = values.flatten
     # DB.transaction do |db|
       DB.execute "INSERT OR REPLACE INTO #{ self.class.table } (#{ names.join(',') }) VALUES (#{ (['?'] * values.size).join(',') });", *values
+      @saved = true
       links.each do |link|
         field = link[:field]
         values = link[:values]
@@ -248,7 +255,7 @@ class Entity < Model
         end
       end
     # end
-    @saved = true
+    # @saved = true
     # TODO: разобраться и почистить двойное присваивание
     self
   end
@@ -262,6 +269,7 @@ end
 module BySLUG
 
   def by_slug slug
+    # Status::status '[fetch]', "#{ self } : #{ slug } ..."
     @entities ||= {}
     results = @entities.values.select { |e| e.slug == slug.intern }
     if results.empty?
@@ -272,6 +280,7 @@ module BySLUG
       data = API.get @api_path, :path, 1, slug
       results = data.map { |d| parse(d) }
     end
+    # Status::status '[fetch]', "#{ self } : #{ slug } DONE"
     if results.empty?
       nil
     else

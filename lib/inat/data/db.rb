@@ -33,17 +33,21 @@ class DB
   end
 
   def execute query, *args
+    Status::status '[db]', '...'
+    result = []
     @mutex.synchronize do
       last_time = Time::new
       info "DB: query = #{ query } args = #{ args.inspect }"
       result = @data.execute query, args
       time_diff = Time::new - last_time
       debug "DB OK: count = #{ Array === result && result.size || 'none' } time = #{ (time_diff * 1000000).to_i }ns"
-      result
     end
+    Status::status '[db]', 'DONE'
+    result
   end
 
   def execute_batch query
+    Status::status '[db]', '...'
     @mutex.synchronize do
       last_time = Time::new
       info "DB: batch = #{ query }"
@@ -51,6 +55,7 @@ class DB
       time_diff = Time::new - last_time
       debug "DB OK: time = #{ (time_diff * 1000000).to_i }ns"
     end
+    Status::status '[db]', 'DONE'
   end
 
   # def transaction &block

@@ -28,6 +28,7 @@ module API
         return get(path, *head) + get(path, *rest)
       end
       result = []
+      Status::status '[api]', "#{ path } ..."
       @mutex.synchronize do
         now = Time::new
         if @last_call && now - @last_call < FREQUENCY_LIMIT
@@ -48,6 +49,7 @@ module API
         end
         uri = URI(url)
         info "GET: URI = #{ uri.inspect }"
+        # Status::status 'GET', uri.to_s
         https = uri.scheme == 'https'
         open_timeout = G.config[:api][:open_timeout]
         read_timeout = G.config[:api][:read_timeout]
@@ -72,9 +74,11 @@ module API
                 paged = data['per_page']
                 time_diff = Time::new - last_time
                 debug "GET OK: total = #{ total } paged = #{ paged } time = #{ time_diff } "
+                # Status::status 'GET', uri.to_s + ' DONE'
               else
                 error "Bad response om #{ uri.path }#{ uri.query && !uri.query.empty? && '?' + uri.query || '' }: #{ response.inspect }!"
                 result = [ { 'id' => ids.first } ]
+                # Status::status 'GET', uri.to_s + ' ERROR'
               end
             end
             answered = true
@@ -94,6 +98,7 @@ module API
         end
         @last_call = Time::new
       end
+      Status::status '[api]', "#{ path } DONE"
       result
     end
 
@@ -120,6 +125,7 @@ module API
     end
 
     def query path, first_only: false, **params, &block
+      Status::status '[api]', "#{ path } ..."
       para = params.dup
       para.delete_if { |key, _| key.intern == :page }
       para[:per_page] = RECORDS_LIMIT
@@ -136,6 +142,7 @@ module API
         url = make_url path, **para
         uri = URI(url)
         info "QUERY: URI = #{ uri.inspect }"
+        # Status::status 'QUERY', uri.to_s
         https = uri.scheme == 'https'
         open_timeout = G.config[:api][:open_timeout]
         read_timeout = G.config[:api][:read_timeout]
@@ -184,6 +191,7 @@ module API
         end
         @last_call = Time::new
       end
+      Status::status '[api]', "#{ path } DONE"
       # TODO: переделать рекурсию в итерации
       if block_given?
         rr = []

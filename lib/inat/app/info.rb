@@ -5,7 +5,7 @@ module AppInfo
   AUTHOR = 'Ivan Shikhalev'
   EMAIL = 'shkikhalev@gmail.com'
 
-  VERSION = '0.8.0.7'
+  VERSION = '0.8.0.8'
   HOMEPAGE = 'https://github.com/shikhalev/inat-get'
   SOURCE_URL = 'https://github.com/shikhalev/inat-get'
 
