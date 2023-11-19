@@ -143,7 +143,7 @@ class Period
     h = hours all: true
     m = minutes
     s = seconds
-    format "%3d:%02d:%02d", h, m, s
+    format "%d:%02d:%02d", h, m, s
   end
 
   def inspect

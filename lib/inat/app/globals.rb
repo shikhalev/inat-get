@@ -28,6 +28,14 @@ module Globals
       @@config = value
     end
 
+    def status
+      @@status
+    end
+
+    def status= value
+      @@status = value
+    end
+
   end
 
 end
@@ -41,7 +49,9 @@ module LogDSL
   end
 
   def log message, level: MessageLevel::INFO
-    G.logger.log(G.current_task&.name || '‹main›', level, message)
+    G.status.wrap do
+      G.logger.log(G.current_task&.name || '‹main›', level, message)
+    end
   end
 
   def error message, exception: nil

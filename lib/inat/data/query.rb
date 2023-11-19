@@ -848,6 +848,10 @@ class Query
 
   def initialize **params
 
+    @@counter ||= 0
+    @@counter += 1
+    @int_key = @@counter
+
     @api_params = {}
     @db_where = []
     @r_match = []
@@ -1104,7 +1108,7 @@ class Query
           te = (td * (tt - cc)).to_i
           pe = Period::make seconds: te
           pt = Period::make seconds: (Time::new - current_time).to_i
-          Status::status format("%7d  << %7d : %3d%% : %9s  << %9s", cc, tt, pc, pt.to_hs, pe.to_hs)
+          Status::status nil, "Query \##{ @int_key } : parsed #{ format("%d of %d : %3d%% : time %s remain %s", cc, tt, pc, pt.to_hs, pe.to_hs) }"
           # if (cc % 100) == 0
           #   $stderr.puts ''
           # end
@@ -1134,7 +1138,7 @@ class Query
       end
       request.save
     end
-    Status::status "Some queries done."
+    Status::status nil, "Query \##{ @int_key } : DONE"
     result
   end
 

@@ -24,23 +24,41 @@ module Status
     # end
 
     def init
+      @lines = {}
       @mutex = Mutex::new
+      @shift = 0
     end
 
-    def status str
+    def up
+      $stderr.print "\e[#{ @shift }A\r" if @shift > 0
+    end
+
+    def out
+      $stderr.print "\e[0K\n"
+      @lines.each do |key, value|
+        $stderr.print "#{ value }\e[0K\n"
+      end
+      $stderr.print "\e[0K\n"
+      @shift = @lines.size + 2
+    end
+
+    def wrap
       @mutex.synchronize do
-        key = G.current_task&.name&.intern
-        name = ellipsis G.current_task&.name, 25
+        up
+        yield
+        out
+      end
+    end
+
+    def status key, value
+      task = ellipsis G.current_task&.name, 16
+      key = task if key == nil
+      line = format("%16s | %s", key.to_s, value)
+      @mutex.synchronize do
         @lines ||= {}
-        @lines[key] = format("%25s", name) + " : #{ str }\e[0K\n"
-        $stdout.print "=====\e[0K\n"
-        @lines.each do |_, line|
-          $stdout.print line
-        end
-        $stdout.print "-----\e[0K\n"
-        $stdout.print "\e[#{ @lines.size + 2 }A\r"
-      # @lines[key] ||= get_num
-      # $stdout.printf "\e[#{ @lines[key] + 1 };0H%32s : %s\e[0K\e[H", name, str
+        @lines[key] = line
+        up
+        out
       end
     end
 
@@ -53,3 +71,4 @@ module Status
 end
 
 Status::init
+G.status = Status
