@@ -1117,7 +1117,7 @@ class Area
     end
   end
 
-  private def neighbour_count taxon
+  protected def neighbour_count taxon
     result = 0
     @n_lists.each do |n|
       result += 1 if n.include?(taxon)
@@ -1194,6 +1194,8 @@ class Area
     result = []
     if !unconfirmed.empty?
       result << "<h4>Только неподтвержденные наблюдения</h4>"
+      result << ""
+      result << "Требуется помощь в определении."
       result << ""
       result << gen_table(unconfirmed, observers: false)
     end
@@ -1276,6 +1278,68 @@ class Zone < Area
     @n_places = []
   end
 
+  def gen_zones
+    result = []
+    neighbours_table = table do
+      column '#', width: 3, align: :right, data: :line_no
+      column 'Место', data: :place
+      column 'Виды', width: 6, align: :right, data: :species
+      column 'Наблюдения', width: 6, align: :right,  data: :observations
+    end
+    # Делаем запросы мо малым проектам, как задано в ZONES, но затем сводим их в таблицу по большим.
+    @n_lists = []
+    @places_lss = {}
+    @n_projects.each do |pr|
+      ds = select project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)
+      ls = ds.to_list
+      @n_lists << ls
+      place = nil
+      ZONES.each do |key, zone|
+        place = Project::by_slug(key) if zone[:content].include?(pr.slug)
+      end
+      place ||= pr
+      place_ls = @places_lss[place]
+      if place_ls
+        @places_lss[place] = place_ls + ls
+      else
+        @places_lss[place] = ls
+      end
+    end
+    neighbour_rows = []
+    @places_lss.each do |place, ls|
+      neighbour_rows << { place: place, species: ls.count, observations: ls.observation_count }
+    end
+    @neighbours_ls = @n_lists.reduce List::zero, :+
+    neighbour_rows << { line_no: '', place: '', species: @neighbours_ls.count, observations: @neighbours_ls.observation_count, style: 'font-weight:bold;' }
+    neighbours_table << neighbour_rows
+    neighbours_table.to_html
+    result.join "\n"
+  end
+
+  protected def neighbour_count taxon
+    result = 0
+    @places_lss.each do |_, n|
+      result += 1 if n.include?(taxon)
+    end
+    result
+  end
+
+  def generate_compare
+    result = []
+    result << "<h1>Сравнение</h1>"
+    result << ""
+    result << "Сравнение выполнялось со следующими проектами/территориями:"
+    result << ""
+    result << gen_zones
+    result << ""
+    result << gen_unique
+    result << ""
+    result << gen_wanted
+    result << ""
+    result << gen_signature
+    result.join "\n"
+  end
+
 end
 
 
@@ -1291,9 +1355,11 @@ class Special < Area
   end
 
   def write_unique file = nil
+    # NEED: implement
   end
 
   def write_radiuses file = nil
+    # NEED: implement
   end
 
 end
