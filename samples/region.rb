@@ -884,8 +884,7 @@ class Area
       column 'Виды', width: 6, align: :right, data: :species
       column 'Новые', width: 6, align: :right, data: :news
     end
-    @full_ds = @projects.map { |pr| select(project_id: pr.id, quality_grade: [ QualityGrade::RESEARCH, QualityGrade::NEEDS_ID ], date: (.. @finish)) }.reduce(DataSet::zero, :|)
-    @main_ds = @full_ds.where { |o| o.quality_grade == QualityGrade::RESEARCH }
+    @main_ds = @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)) }.reduce(DataSet::zero, :|)
     # @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)) }.reduce(DataSet::zero, :|)
     @seasons = @main_ds.to_list Listers::YEAR
     olds = List::zero
@@ -1189,8 +1188,8 @@ class Area
   end
 
   def gen_unconfirmed
-    all = @full_ds.to_list
-    unconfirmed = all - @main_ls
+    unconf_ls = @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::NEEDS_ID, date: (.. @finish)) }.reduce(DataSet::zero, :|).to_list
+    unconfirmed = unconf_ls - @main_ls
     result = []
     if !unconfirmed.empty?
       result << "<h4>Только неподтвержденные наблюдения</h4>"
