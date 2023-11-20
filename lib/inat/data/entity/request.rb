@@ -48,4 +48,11 @@ class Request < Entity
 
   end
 
+  attr_accessor :active
+
+  def initialize id
+    super(id)
+    @active = false
+  end
+
 end

@@ -1093,31 +1093,40 @@ class Query
         else
           updated_since = request.time if mode != UpdateMode::RELOAD
         end
-        params = @api_params.dup
-        params[:updated_since] = updated_since if updated_since && updated_since != Time::at(0)
-        # request.save
-        olinks = []
-        tt = nil
-        cc = 0
-        current_time = Time::new
-        API::query(:observations, **params) do |json, total|
-          tt ||= total
-          cc += 1
-          pc = cc * 100 / tt
-          td = (Time::new - current_time) / cc
-          te = (td * (tt - cc)).to_i
-          pe = Period::make seconds: te
-          pt = Period::make seconds: (Time::new - current_time).to_i
-          Status::status nil, "Query \##{ @int_key } : parsed #{ format("%d of %d : %3d%% : time %s remain %s", cc, tt, pc, pt.to_hs, pe.to_hs) }"
-          # if (cc % 100) == 0
-          #   $stderr.puts ''
-          # end
-          obs = Observation::parse json
-          obs.save
-          olinks << "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (#{ request.id }, #{obs.id});"
-          # DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
+        if request.active
+          Status::status nil, "Query \##{ @int_key } : waiting for request \##{ request.id }..."
+          while request.active do
+            sleep 1.0
+          end
+        else
+          request.active = true
+          params = @api_params.dup
+          params[:updated_since] = updated_since if updated_since && updated_since != Time::at(0)
+          # request.save
+          olinks = []
+          tt = nil
+          cc = 0
+          current_time = Time::new
+          API::query(:observations, **params) do |json, total|
+            tt ||= total
+            cc += 1
+            pc = cc * 100 / tt
+            td = (Time::new - current_time) / cc
+            te = (td * (tt - cc)).to_i
+            pe = Period::make seconds: te
+            pt = Period::make seconds: (Time::new - current_time).to_i
+            Status::status nil, "Query \##{ @int_key } : parsed #{ format("%d of %d : %3d%% : time %s remain %s", cc, tt, pc, pt.to_hs, pe.to_hs) }"
+            # if (cc % 100) == 0
+            #   $stderr.puts ''
+            # end
+            obs = Observation::parse json
+            obs.save
+            olinks << "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (#{ request.id }, #{obs.id});"
+            # DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
+          end
+          DB.execute_batch olinks.join("\n")
+          request.active = false
         end
-        DB.execute_batch olinks.join("\n")
         # Считываем свежедобаленное
         # TODO: разобраться с удалением устаревшего
         # NEED: разобраться с частичной загрузкой — большие проекты грузятся недопустимо долго
