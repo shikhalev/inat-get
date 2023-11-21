@@ -83,15 +83,18 @@ class DataSet
   end
 
   def | other
-    DataSet::new nil, @observations + other.observations, time: Time::new
+    obj = @object == other.object ? @object : nil
+    DataSet::new obj, @observations + other.observations, time: Time::new
   end
 
   def & other
-    DataSet::new nil, @observations.select { |o| other.include?(o) }, time: Time::new
+    obj = @object == other.object ? @object : nil
+    DataSet::new obj, @observations.select { |o| other.include?(o) }, time: Time::new
   end
 
   def - other
-    DataSet::new nil, @observations.select { |o| !other.include?(o) }, time: Time::new
+    obj = @object == other.object ? @object : nil
+    DataSet::new obj, @observations.select { |o| !other.include?(o) }, time: Time::new
   end
 
   def to_a

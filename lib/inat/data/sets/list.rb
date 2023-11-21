@@ -132,36 +132,59 @@ class List
     end
   end
 
-  def * other
+  def apply! *data
+    @lister, @sorter, @time, @data = data
+    self
+  end
+
+  def clone
+    List::zero.apply! @lister, @sorter, @time, @data.dup
+  end
+
+  def add! other
+    other.each do |ds|
+      self << ds
+    end
+    self
+  end
+
+  def mul! other
+    @data.delete_if { | key, _ | !other.include?(key) }
+    other.each do |ds|
+      if self.include?(ds.object)
+        self << ds
+      end
+    end
+    self
+  end
+
+  def sub! other
+    @data.delete_if { | key, _ | other.include?(key) }
+    self
+  end
+
+  def add other
+    clone.add! other
+  end
+
+  def mul other
+    # А вот здесь будет эффективней старое решение
     result = List::new [], @lister, sorter: @sorter, time: @time
-    # в принципе можно оптимизировать, но с понятностью будет не очень
-    @data.each do |key, value|
+    @data.each do |key, ds|
       if other.include?(key)
-        summa = value | other[key]
-        summa.each do |observation|
-          result << observation
-        end
+        summa = ds | other[key]
+        self << summa
       end
     end
     result
   end
 
-  def + other
-    dataset = self.to_dataset | other.to_dataset
-    List::new dataset, @lister, sorter: @sorter, time: @time
+  def sub other
+    clone.sub! other
   end
 
-  def - other
-    result = List::new [], @lister, sorter: @sorter, time: @time
-    # в принципе можно оптимизировать, но с понятностью будет не очень
-    @data.each do |key, value|
-      if !other.include?(key)
-        value.each do |observation|
-          result << observation
-        end
-      end
-    end
-    result
-  end
+  alias :+ :add
+  alias :* :mul
+  alias :- :sub
 
 end

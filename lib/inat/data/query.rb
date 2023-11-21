@@ -1064,7 +1064,6 @@ class Query
   end
 
   def observations
-    # $SHOW_SAVES = false
     request = nil
     current_time = nil
     mode = G.config[:data][:update]
@@ -1102,8 +1101,6 @@ class Query
           request.active = true
           params = @api_params.dup
           params[:updated_since] = updated_since if updated_since && updated_since != Time::at(0)
-          # request.save
-          olinks = []
           tt = nil
           cc = 0
           current_time = Time::new
@@ -1116,15 +1113,10 @@ class Query
             pe = Period::make seconds: te
             pt = Period::make seconds: (Time::new - current_time).to_i
             Status::status nil, "Query \##{ @int_key } : parsed #{ format("%d of %d : %3d%% : time %s remain %s", cc, tt, pc, pt.to_hs, pe.to_hs) }"
-            # if (cc % 100) == 0
-            #   $stderr.puts ''
-            # end
             obs = Observation::parse json
             obs.save
-            olinks << "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (#{ request.id }, #{obs.id});"
-            # DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
+            DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
           end
-          DB.execute_batch olinks.join("\n")
           request.active = false
         end
         # Считываем свежедобаленное
@@ -1135,7 +1127,6 @@ class Query
       end
     end
     # TODO: разобраться, где тупня
-    # $SHOW_SAVES = true
     sql, sql_args = db_where
     result = Observation::from_db_rows(DB.execute("SELECT * FROM observations o#{ sql.empty? && '' || ' WHERE ' }#{ sql };", *sql_args))
     if !@r_match.empty?

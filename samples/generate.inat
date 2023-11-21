@@ -27,8 +27,5 @@ SPECIALS.each do |key, value|
                                       "\n" +
                                       "special = Special::new '#{ key }', FINISH_DATE\n" +
                                       "special.write_history\n" +
-                                      "special.write_unique\n" +
                                       "special.write_radiuses\n"
-
-  puts value[:short].size
 end

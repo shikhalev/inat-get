@@ -876,6 +876,10 @@ class Area
     @finish.year
   end
 
+  protected def select_main
+    @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)) }.reduce(DataSet::zero, :|)
+  end
+
   private def gen_seasons
     seasons_table = table do
       column '#', width: 3, align: :right, data: :line_no
@@ -884,7 +888,7 @@ class Area
       column 'Виды', width: 6, align: :right, data: :species
       column 'Новые', width: 6, align: :right, data: :news
     end
-    @main_ds = @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)) }.reduce(DataSet::zero, :|)
+    @main_ds = self.select_main
     # @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)) }.reduce(DataSet::zero, :|)
     @seasons = @main_ds.to_list Listers::YEAR
     olds = List::zero
@@ -950,11 +954,15 @@ class Area
     result.join "\n"
   end
 
-  private def gen_table source, observers: false
+  private def gen_table source, observers: false, details: true
     news_table = table do
       column '#', width: 3, align: :right, data: :line_no
       column 'Таксон', data: :taxon
-      column 'Наблюдения', data: :observations
+      if details
+        column 'Наблюдения', data: :observations
+      else
+        column 'Наблюдения', data: :observations, align: :right, width: 6
+      end
     end
     if observers
       @@prefix ||= 0
@@ -984,14 +992,18 @@ class Area
     source.each do |ds|
       taxon = ds.object
       observations = []
-      if observers
-        ds.each do |obs|
-          user = obs.user
-          anchor = "#{ @@prefix }-user-#{ user.login }"
-          observations << "#{ obs }<sup><a href=\"\##{ anchor }\">#{ user_rows.index { |i| i[:user] == user } + 1 }</a></sup>"
+      if details
+        if observers
+          ds.each do |obs|
+            user = obs.user
+            anchor = "#{ @@prefix }-user-#{ user.login }"
+            observations << "#{ obs }<sup><a href=\"\##{ anchor }\">#{ user_rows.index { |i| i[:user] == user } + 1 }</a></sup>"
+          end
+        else
+        observations = ds.observations.map(&:to_s)
         end
       else
-        observations = ds.observations.map(&:to_s)
+        observations = [ ds.count.to_s ]
       end
       news_rows << { taxon: taxon, observations: observations.join(', ') }
     end
@@ -1036,7 +1048,7 @@ class Area
     "\n<hr>\n\n<small>Отчет сгенерирован посредством <a href=\"https://github.com/shikhalev/inat-get\">INat::Get v#{ VERSION }</a></small>"
   end
 
-  private def generate_history
+  protected def generate_history
     result = []
     result << "<h1>Итоги сезона #{ season }</h1>"
     result << ""
@@ -1101,7 +1113,7 @@ class Area
     neighbours_table.to_html
   end
 
-  private def gen_unique
+  private def gen_unique details = true
     unique_ls = @main_ls - @neighbours_ls
     if !unique_ls.empty?
       result = []
@@ -1109,7 +1121,7 @@ class Area
       result << ""
       result << "Таксоны, наблюдаемые здесь, но не найденные у соседей."
       result << ""
-      result << gen_table(unique_ls, observers: 'Наблюдатели «уников»')
+      result << gen_table(unique_ls, observers: 'Наблюдатели «уников»', details: details)
       result.join "\n"
     else
       ''
@@ -1124,7 +1136,7 @@ class Area
     result
   end
 
-  private def gen_wanted
+  private def gen_wanted details = true
     wanted_ls = @neighbours_ls - @main_ls
     # TODO: переделать на where
     double_dss = wanted_ls.filter { |ds| neighbour_count(ds.object) >= 2 }
@@ -1139,7 +1151,7 @@ class Area
         result << "Топ-50 (из #{ double_dss.size }) таксонов, найденных как минимум у двух соседей, но не обнаруженных здесь."
       end
       result << ""
-      result << gen_table(double_ls, observers: false)
+      result << gen_table(double_ls, observers: false, details: details)
       result.join "\n"
     else
       ''
@@ -1265,6 +1277,7 @@ class Zone < Area
     @slug = slug
     @finish = finish
     data = ZONES[slug]
+    @name = data[:short]
     @projects = data[:content].map { |pr| Project::by_slug(pr) }
     @n_projects = ZONES.map do |key, value|
       if key == slug
@@ -1278,7 +1291,6 @@ class Zone < Area
   end
 
   def gen_zones
-    result = []
     neighbours_table = table do
       column '#', width: 3, align: :right, data: :line_no
       column 'Место', data: :place
@@ -1294,7 +1306,7 @@ class Zone < Area
       @n_lists << ls
       place = nil
       ZONES.each do |key, zone|
-        place = Project::by_slug(key) if zone[:content].include?(pr.slug)
+        place = Project::by_slug(key) if zone[:content].include?(pr.slug.to_s)
       end
       place ||= pr
       place_ls = @places_lss[place]
@@ -1312,7 +1324,6 @@ class Zone < Area
     neighbour_rows << { line_no: '', place: '', species: @neighbours_ls.count, observations: @neighbours_ls.observation_count, style: 'font-weight:bold;' }
     neighbours_table << neighbour_rows
     neighbours_table.to_html
-    result.join "\n"
   end
 
   protected def neighbour_count taxon
@@ -1333,7 +1344,7 @@ class Zone < Area
     result << ""
     result << gen_unique
     result << ""
-    result << gen_wanted
+    result << gen_wanted(false)
     result << ""
     result << gen_signature
     result.join "\n"
@@ -1344,8 +1355,12 @@ end
 
 class Special < Area
 
+  include LogDSL
+
   def initialize slug, finish, top_count: 10, top_limit: 10
     super(top_count, top_limit)
+    data = SPECIALS[slug]
+    @name = data[:short]
     @slug = slug
     @finish = finish
     @projects = [ Project::by_slug(slug) ]
@@ -1353,12 +1368,137 @@ class Special < Area
     @n_places = []
   end
 
+  protected def select_main
+    @projects.map { |pr| select(project_id: pr.id, quality_grade: [ QualityGrade::RESEARCH, QualityGrade::NEEDS_ID ], date: (.. @finish)) }.reduce(DataSet::zero, :|)
+  end
+
+  private def gen_unique
+    gen_neighbours
+    unique = @main_ls - @neighbours_ls
+    gen_table(unique, observers: 'Наблюдатели уников')
+  end
+
+  protected def generate_history
+    result = []
+    result << "<h1>Итоги сезона #{ season }</h1>"
+    result << ""
+    result << "Здесь учитываются все наблюдения — как исследовательского уровня, так и требующие идентификации."
+    result << ""
+    result << "<h2>История</h2>"
+    result << ""
+    result << gen_seasons
+    result << ""
+    result << "Тор-#{ @top_count } наблюдателей среди тех, кто набрал не менее #{ @top_limit } видов."
+    result << ""
+    result << gen_tops
+    result << ""
+    result << gen_news
+    result << ""
+    result << "<h2>Уникальные таксоны</h2>"
+    result << ""
+    result << "Таксоны не попавшие ни в один нормальный районный проект."
+    result << ""
+    result << gen_unique
+    result << ""
+    result << gen_signature
+    result.join "\n"
+  end
+
   def write_unique file = nil
-    # NEED: implement
+    output = generate_unique
+    case file
+    when nil
+      File.write "#{ @name } - Уники.htm", output
+    when String
+      File.write file, output
+    when IO
+      file.write output
+    else
+      raise TypeError, "Invalid file: #{ file.inspect }!", caller
+    end
+  end
+
+  private def gen_radius_table list
+    radius_table = table do
+      column '#', width: 3, align: :right, data: :line_no
+      column 'Наблюдатель', width: 15, data: :observer
+      column 'К-во', width: 3, align: :right, data: :count
+      column 'Наблюдения', data: :observations
+    end
+    radius_rows = []
+    list.sort_by { |ds| -ds.count }.each do |ds|
+      radius_rows << { observer: ds.object, count: ds.count, observations: ds.observations.map(&:to_s).join(', ') }
+    end
+    radius_rows << { line_no: '', observer: 'Всего:', count: list.observation_count, observations: '', style: 'font-weight: bold;' }
+    radius_table << radius_rows
+    radius_table.to_html
+  end
+
+  private def gen_radiuses
+    result = []
+    lister = lambda do |o|
+      if o.obscured
+        nil
+      elsif o.positional_accuracy >= 10000
+        4
+      elsif o.positional_accuracy >= 1000
+        3
+      elsif o.positional_accuracy >= 100
+        2
+      elsif o.positional_accuracy >= 10
+        nil
+      else
+        nil
+      end
+    end
+    subs = [
+      'Меньше 10 м',
+      '10–100 м',
+      '100 м – 1 км',
+      '1–10 км',
+      'Больше 10 км'
+    ]
+    main_ls = @main_ds.to_list lister
+    main_ls.reverse_each do |ds|
+      if !ds.empty?
+        ls = ds.to_list Listers::USER
+        subtitle = subs[ds.object]
+        result << "<h2>#{ subtitle }</h2>"
+        result << ""
+        # TODO: переделать таблицу
+        result << gen_radius_table(ls)
+        result << ""
+      end
+    end
+    result.join "\n"
+  end
+
+  private def generate_radiuses
+    result = []
+    result << "<h1>Слишком большие радиусы</h1>"
+    result << ""
+    result << "Наблюдения, с открытым местоположением и большим (иногда очень) радиусом точности." +
+              " Напомню, что в данный проект попадают наблюдения, которые не вошли ни в один районный проект" +
+              " зачастую именно из-за геопозиций со слишком большими радиусами."
+    result << ""
+    result << gen_radiuses
+    result << ""
+    result << gen_signature
+    result.join "\n"
   end
 
   def write_radiuses file = nil
-    # NEED: implement
+    output = generate_radiuses
+    case file
+    when nil
+      File.write "#{ @name } - Точность.htm", output
+    when String
+      File.write file, output
+    when IO
+      file.write output
+    else
+      raise TypeError, "Invalid file: #{ file.inspect }!", caller
+    end
   end
 
 end
