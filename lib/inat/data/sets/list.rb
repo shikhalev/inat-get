@@ -6,7 +6,7 @@ class List
 
   attr_reader :lister, :sorter
 
-  DEFAULT_SORTER = lambda { |obj| obj.respond_to?(:sort_key) ? obj.sort_key : obj }
+  DEFAULT_SORTER = lambda { |ds| ds.object.respond_to?(:sort_key) ? ds.object.sort_key : ds.object }
 
   def initialize source, lister, sorter: nil, time: Time::new
     @lister = lister
@@ -34,7 +34,7 @@ class List
 
   def each
     if block_given?
-      @data.values.sort_by { |ds| @sorter.call(ds.object) }.each do |ds|
+      @data.values.sort_by { |ds| @sorter.call(ds) }.each do |ds|
         yield ds
       end
     else
