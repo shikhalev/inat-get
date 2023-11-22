@@ -27,8 +27,10 @@ class Table
   private :column
 
   def row **data
-    @line_no += 1
-    data[:line_no] ||= @line_no
+    if !data.has_key?(:line_no)
+      @line_no += 1
+      data[:line_no] ||= @line_no
+    end
     @rows << data
   end
 
