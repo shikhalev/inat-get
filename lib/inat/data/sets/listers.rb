@@ -10,6 +10,7 @@ module Listers
   YEAR    = lambda { |o| Year[o.observed_on]                                }
   MONTH   = lambda { |o| Month[o.observed_on]                               }
   DAY     = lambda { |o| Day[o.observed_on]                                 }
+  WINTER  = lambda { |o| Winter[o.observed_on]                              }
   USER    = lambda { |o| o.user                                             }
 
 end
