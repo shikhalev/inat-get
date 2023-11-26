@@ -1,4 +1,6 @@
 
+require 'inat/report/report_dsl'
+
 DISTRICTS = {
 
   'bioraznoobrazie-alapaevska-i-alapaevskogo-rayona' => {
@@ -865,6 +867,7 @@ class Area
 
   include Task::DSL
   include TableDSL
+  include ReportDSL
   include AppInfo
 
   def initialize top_count, top_limit
@@ -881,39 +884,42 @@ class Area
   end
 
   private def gen_seasons
-    seasons_table = table do
-      column '#', width: 3, align: :right, data: :line_no
-      column 'Сезон', data: :year
-      column 'Наблюдения', width: 6, align: :right,  data: :observations
-      column 'Виды', width: 6, align: :right, data: :species
-      column 'Новые', width: 6, align: :right, data: :news
-    end
+    # seasons_table = table do
+    #   column '#', width: 3, align: :right, data: :line_no
+    #   column 'Сезон', data: :year
+    #   column 'Наблюдения', width: 6, align: :right,  data: :observations
+    #   column 'Виды', width: 6, align: :right, data: :species
+    #   column 'Новые', width: 6, align: :right, data: :news
+    # end
     @main_ds = self.select_main
+    @main_ls = @main_ds.to_list
     # @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)) }.reduce(DataSet::zero, :|)
     @seasons = @main_ds.to_list Listers::YEAR
-    olds = List::zero
-    @last_year = nil
-    season_rows = []
-    @seasons.each do |ds|
-      ls = ds.to_list
-      @delta = ls - olds
-      @last_year = ds.object
-      season_rows << { year: @last_year, observations: ds.count, species: ls.count, news: @delta.count }
-      @last_ds = ds
-      olds += ls
-    end
-    this_year = Year[@finish]
-    if @last_year != this_year
-      season_rows << { year: this_year, observations: 0, species: 0, news: 0 }
-      @last_year = this_year
-      @delta = List::zero
-      @last_ds = DataSet::zero
-    end
-    @main_ls = @main_ds.to_list
-    bold_style = 'font-weight:bold;font-size:110%;'
-    season_rows.last[:style] = bold_style
-    season_rows << { line_no: '', year: '', observations: @main_ds.count, species: @main_ls.count, news: '', style: bold_style }
-    seasons_table << season_rows
+    @last_year = Year[@finish]
+    seasons_table, @last_ds, @delta = history_table @seasons, last: @last_year, extras: true
+    # olds = List::zero
+    # @last_year = nil
+    # season_rows = []
+    # @seasons.each do |ds|
+    #   ls = ds.to_list
+    #   @delta = ls - olds
+    #   @last_year = ds.object
+    #   season_rows << { year: @last_year, observations: ds.count, species: ls.count, news: @delta.count }
+    #   @last_ds = ds
+    #   olds += ls
+    # end
+    # this_year = Year[@finish]
+    # if @last_year != this_year
+    #   season_rows << { year: this_year, observations: 0, species: 0, news: 0 }
+    #   @last_year = this_year
+    #   @delta = List::zero
+    #   @last_ds = DataSet::zero
+    # end
+    # @main_ls = @main_ds.to_list
+    # bold_style = 'font-weight:bold;font-size:110%;'
+    # season_rows.last[:style] = bold_style
+    # season_rows << { line_no: '', year: '', observations: @main_ds.count, species: @main_ls.count, news: '', style: bold_style }
+    # seasons_table << season_rows
     seasons_table.to_html
   end
 
@@ -925,20 +931,21 @@ class Area
       column 'Наблюдения', width: 6, align: :right,  data: :observations
     end
     users = source.to_list Listers::USER
-    user_rows = []
-    users.each do |ds|
-      user = ds.object
-      ls = ds.to_list Listers::SPECIES
-      user_rows << {
-        user: user,
-        species: ls.count,
-        observations: ds.count
-      }
-    end
-    user_rows = user_rows.filter { |row| row[:species] >= @top_limit }.sort_by { |row| row[:species] }.reverse.take(@top_count)
-    users_table << user_rows
+    users_table, _ = rating_table users, limit: 10, count: 10, details: false
+    # user_rows = []
+    # users.each do |ds|
+    #   user = ds.object
+    #   ls = ds.to_list Listers::SPECIES
+    #   user_rows << {
+    #     user: user,
+    #     species: ls.count,
+    #     observations: ds.count
+    #   }
+    # end
+    # user_rows = user_rows.filter { |row| row[:species] >= @top_limit }.sort_by { |row| row[:species] }.reverse.take(@top_count)
+    # users_table << user_rows
     result = []
-    if !user_rows.empty?
+    if !users_table.empty?
       result << "<h4>#{ title }</h4>"
       result << ''
       result << users_table.to_html
@@ -955,59 +962,60 @@ class Area
   end
 
   private def gen_table source, observers: false, details: true
-    news_table = table do
-      column '#', width: 3, align: :right, data: :line_no
-      column 'Таксон', data: :taxon
-      if details
-        column 'Наблюдения', data: :observations
-      else
-        column 'Наблюдения', data: :observations, align: :right, width: 6
-      end
-    end
-    if observers
-      @@prefix ||= 0
-      @@prefix += 1
-      observers_table = table do
-        column '#', width: 3, align: :right, data: :line_no, marker: true
-        column 'Наблюдатель', data: :user
-        column 'Виды', width: 6, align: :right, data: :species
-        column 'Наблюдения', width: 6, align: :right,  data: :observations
-      end
-      by_users = source.to_dataset.to_list Listers::USER
-      user_rows = []
-      by_users.each do |ds|
-        user = ds.object
-        ls = ds.to_list Listers::SPECIES
-        user_rows << {
-          user: user,
-          anchor: "#{ @@prefix }-user-#{ user.login }",
-          species: ls.count,
-          observations: ds.count,
-        }
-      end
-      user_rows.sort_by! { |row| row[:species] }.reverse!
-      observers_table << user_rows
-    end
-    news_rows = []
-    source.each do |ds|
-      taxon = ds.object
-      observations = []
-      if details
-        if observers
-          ds.each do |obs|
-            user = obs.user
-            anchor = "#{ @@prefix }-user-#{ user.login }"
-            observations << "#{ obs }<sup><a href=\"\##{ anchor }\">#{ user_rows.index { |i| i[:user] == user } + 1 }</a></sup>"
-          end
-        else
-        observations = ds.observations.map(&:to_s)
-        end
-      else
-        observations = [ ds.count.to_s ]
-      end
-      news_rows << { taxon: taxon, observations: observations.join(', ') }
-    end
-    news_table << news_rows
+    # news_table = table do
+    #   column '#', width: 3, align: :right, data: :line_no
+    #   column 'Таксон', data: :taxon
+    #   if details
+    #     column 'Наблюдения', data: :observations
+    #   else
+    #     column 'Наблюдения', data: :observations, align: :right, width: 6
+    #   end
+    # end
+    # if observers
+    #   @@prefix ||= 0
+    #   @@prefix += 1
+    #   observers_table = table do
+    #     column '#', width: 3, align: :right, data: :line_no, marker: true
+    #     column 'Наблюдатель', data: :user
+    #     column 'Виды', width: 6, align: :right, data: :species
+    #     column 'Наблюдения', width: 6, align: :right,  data: :observations
+    #   end
+    #   by_users = source.to_dataset.to_list Listers::USER
+    #   user_rows = []
+    #   by_users.each do |ds|
+    #     user = ds.object
+    #     ls = ds.to_list Listers::SPECIES
+    #     user_rows << {
+    #       user: user,
+    #       anchor: "#{ @@prefix }-user-#{ user.login }",
+    #       species: ls.count,
+    #       observations: ds.count,
+    #     }
+    #   end
+    #   user_rows.sort_by! { |row| row[:species] }.reverse!
+    #   observers_table << user_rows
+    # end
+    # news_rows = []
+    # source.each do |ds|
+    #   taxon = ds.object
+    #   observations = []
+    #   if details
+    #     if observers
+    #       ds.each do |obs|
+    #         user = obs.user
+    #         anchor = "#{ @@prefix }-user-#{ user.login }"
+    #         observations << "#{ obs }<sup><a href=\"\##{ anchor }\">#{ user_rows.index { |i| i[:user] == user } + 1 }</a></sup>"
+    #       end
+    #     else
+    #     observations = ds.observations.map(&:to_s)
+    #     end
+    #   else
+    #     observations = [ ds.count.to_s ]
+    #   end
+    #   news_rows << { taxon: taxon, observations: observations.join(', ') }
+    # end
+    # news_table << news_rows
+    news_table, observers_table = species_table source, observers: observers, details: details
     result = []
     result << news_table.to_html
     if observers
@@ -1087,29 +1095,35 @@ class Area
   end
 
   private def gen_neighbours
-    neighbours_table = table do
-      column '#', width: 3, align: :right, data: :line_no
-      column 'Место', data: :place
-      column 'Виды', width: 6, align: :right, data: :species
-      column 'Наблюдения', width: 6, align: :right,  data: :observations
-    end
+    # neighbours_table = table do
+    #   column '#', width: 3, align: :right, data: :line_no
+    #   column 'Место', data: :place
+    #   column 'Виды', width: 6, align: :right, data: :species
+    #   column 'Наблюдения', width: 6, align: :right,  data: :observations
+    # end
     @n_lists = []
+    n_dss = []
     neighbour_rows = []
     @n_projects.each do |pr|
       ds = select project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)
+      ds.object = pr
+      n_dss << ds
       ls = ds.to_list
       @n_lists << ls
       neighbour_rows << { place: pr, species: ls.count, observations: ds.count }
     end
     @n_places.each do |pl|
       ds = select place_id: pl.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)
+      ds.object = pl
+      n_dss << ds
       ls = ds.to_list
       @n_lists << ls
       neighbour_rows << { place: pl, species: ls.count, observations: ds.count }
     end
     @neighbours_ls = @n_lists.reduce List::zero, :+
-    neighbour_rows << { line_no: '', place: '', species: @neighbours_ls.count, observations: @neighbours_ls.observation_count, style: 'font-weight:bold;' }
-    neighbours_table << neighbour_rows
+    # neighbour_rows << { line_no: '', place: '', species: @neighbours_ls.count, observations: @neighbours_ls.observation_count, style: 'font-weight:bold;' }
+    # neighbours_table << neighbour_rows
+    neighbours_table = summary_table n_dss
     neighbours_table.to_html
   end
 
@@ -1419,18 +1433,19 @@ class Special < Area
   end
 
   private def gen_radius_table list
-    radius_table = table do
-      column '#', width: 3, align: :right, data: :line_no
-      column 'Наблюдатель', width: 15, data: :observer
-      column 'К-во', width: 3, align: :right, data: :count
-      column 'Наблюдения', data: :observations
-    end
-    radius_rows = []
-    list.sort_by { |ds| -ds.count }.each do |ds|
-      radius_rows << { observer: ds.object, count: ds.count, observations: ds.observations.map(&:to_s).join(', ') }
-    end
-    radius_rows << { line_no: '', observer: 'Всего:', count: list.observation_count, observations: '', style: 'font-weight: bold;' }
-    radius_table << radius_rows
+    # radius_table = table do
+    #   column '#', width: 3, align: :right, data: :line_no
+    #   column 'Наблюдатель', width: 15, data: :observer
+    #   column 'К-во', width: 3, align: :right, data: :count
+    #   column 'Наблюдения', data: :observations
+    # end
+    # radius_rows = []
+    # list.sort_by { |ds| -ds.count }.each do |ds|
+    #   radius_rows << { observer: ds.object, count: ds.count, observations: ds.observations.map(&:to_s).join(', ') }
+    # end
+    # radius_rows << { line_no: '', observer: 'Всего:', count: list.observation_count, observations: '', style: 'font-weight: bold;' }
+    # radius_table << radius_rows
+    radius_table = rating_table list, count: nil, key: :observations
     radius_table.to_html
   end
 

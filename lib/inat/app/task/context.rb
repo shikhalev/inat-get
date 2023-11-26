@@ -2,11 +2,13 @@
 
 require_relative 'dsl'
 require_relative '../../report/table'
+require_relative '../../report/report_dsl'
 
 class Task::Context
 
   include Task::DSL
   include TableDSL
+  include ReportDSL
 
   attr_accessor :name
 

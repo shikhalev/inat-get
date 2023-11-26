@@ -6,7 +6,7 @@ require_relative 'list'
 class DataSet
 
   attr_reader :time
-  attr_reader :object
+  attr_accessor :object                # TODO: переделать select так, чтобы не было необходимости во внешнем присваивании
   attr_reader :observations
 
   def initialize object, observations, time: Time::new

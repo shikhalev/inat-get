@@ -41,6 +41,10 @@ class Table
     @rows
   end
 
+  def empty?
+    @rows.empty?
+  end
+
   def << data
     if Array === data
       rows(*data)

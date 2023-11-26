@@ -2,136 +2,161 @@
 
 require 'date'
 
-class Year
+class Calendarian
 
   class << self
 
     private :new
 
-    def [] source
-      return nil if source == nil
-      return source if Year === source
-      year = case source
-      when Date, Time
-        source.year
+    def [] src
+      return nil if src == nil
+      return src if self === src
+      value = case src
+      when Date
+        self.date_to_value src
+      when Time
+        self.date_to_value src.to_date
       when String
-        date = Date::parse source
-        date.year
+        date = Date::parse src
+        self.date_to_value date
       when Integer
-        source
+        src
       else
-        raise TypeError, "Invalid year key: #{ source.inspect }!", caller
+        raise TypeError, "Invalid date: #{ src.inspect }", caller
       end
-      @years ||= {}
-      @years[year] ||= new year
-      @years[year]
+      return nil if value == nil
+      @values ||= {}
+      @values[value] ||= new value
+      @values[value]
     end
 
   end
 
-  attr_reader :year
+  attr_reader :value
 
-  def initialize year
-    @year = year
+  def initialize value
+    @value = value
   end
 
   include Comparable
 
   def <=> other
-    return nil unless Year === other
-    @year <=> other.year
+    return nil unless self.class === other
+    @value <=> other.value
   end
 
+end
+
+class Year < Calendarian
+
+  class << self
+
+    protected def date_to_value date
+      date.year
+    end
+
+  end
+
+  alias :year :value
+
   def - num
-    self.class[@year - num]
+    self.class[@value - num]
   end
 
   def to_s
-    "<i class=\"glyphicon glyphicon-calendar\"></i>  #{ @year }"
+    "<i class=\"glyphicon glyphicon-calendar\"></i>  #{ @value } год"
+  end
+
+  def query_params
+    "year=#{ @value }"
   end
 
 end
 
-class Month
+class Month < Calendarian
 
   class << self
 
-    private :new
-
-    def [] source
-      return nil if source == nil
-      return source if Month === source
-      month = case source
-      when Date, Time
-        source.month
-      when String
-        date = Date::parse source
-        date.month
-      when Integer
-        source
-      else
-        raise TypeError, "Invalid month key: #{ source.inspect }!", caller
-      end
-      @months ||= {}
-      @months[month] ||= new month
-      @months[month]
+    protected def date_to_value date
+      date.month
     end
 
   end
 
-  attr_reader :month
+  alias :month :value
 
-  def initialize month
-    @month = month
+  NAMES = {
+    1  => 'Январь',
+    2  => 'Февраль',
+    3  => 'Март',
+    4  => 'Апрель',
+    5  => 'Май',
+    6  => 'Июнь',
+    7  => 'Июль',
+    8  => 'Август',
+    9  => 'Сентябрь',
+    10 => 'Октябрь',
+    11 => 'Ноябрь',
+    12 => 'Декабрь'
+  }
+
+  def to_s
+    "<i class=\"glyphicon glyphicon-calendar\"></i>  #{ NAMES[@value] }"
   end
 
-  include Comparable
-
-  def <=> other
-    return nil unless Month === other
-    @month <=> other.month
+  def query_params
+    "month=#{ @value }"
   end
 
 end
 
-class Day
+class Day < Calendarian
 
   class << self
 
-    attr_reader :day
-
-    def [] source
-      return nil if source == nil
-      return source if Day === source
-      day = case source
-      when Date, Time
-        source.day
-      when String
-        date = Date::parse source
-        date.day
-      when Integer
-        source
-      else
-        raise TypeError, "Invalid day key: #{ source.inspect }!", caller
-      end
-      @days ||= {}
-      @days[day] ||= new day
-      @days[day]
+    protected def date_to_value date
+      date.day
     end
 
   end
 
-  attr_reader :day
+  alias :day :value
 
-  def initialize day
-    @day = day
+  def to_s
+    "<i class=\"glyphicon glyphicon-calendar\"></i>  #{ @value }"
   end
 
-  include Comparable
+  def query_params
+    "day=#{ @value }"
+  end
 
-  def <=> other
-    return nil unless Day === other
-    @day <=> other.day
+end
+
+class Winter < Calendarian
+
+  class << self
+
+    protected def date_to_value date
+      month = date.month
+      if month <= 4
+        date.year
+      elsif month >= 10
+        date.year + 1
+      else
+        nil
+      end
+    end
+
+  end
+
+  alias :winter :value
+
+  def to_s
+    "<i class=\"glyphicon glyphicon-calendar\"></i>  Зима #{ @value - 1 }–#{ @value }"
+  end
+
+  def query_params
+    "d1=#{ @value - 1 }-10-01&d2=#{ @value }-04-30"
   end
 
 end
