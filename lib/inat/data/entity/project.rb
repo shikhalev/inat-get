@@ -9,15 +9,19 @@ require_relative '../enums/projecttype'
 # require_relative 'projectadmin'
 # require_relative 'projectobservationrule'
 
-autoload :Observation,            'inat/data/entity/observation'
-autoload :User,                   'inat/data/entity/user'
-autoload :Place,                  'inat/data/entity/place'
-autoload :ProjectAdmin,           'inat/data/entity/projectadmin'
-autoload :ProjectObservationRule, 'inat/data/entity/projectobservationrule'
-autoload :Flag,                   'inat/data/entity/flag'
-autoload :Taxon,                  'inat/data/entity/taxon'
+class INat::Entity
+  autoload :Observation,            'inat/data/entity/observation'
+  autoload :User,                   'inat/data/entity/user'
+  autoload :Place,                  'inat/data/entity/place'
+  autoload :ProjectAdmin,           'inat/data/entity/projectadmin'
+  autoload :ProjectObservationRule, 'inat/data/entity/projectobservationrule'
+  autoload :Flag,                   'inat/data/entity/flag'
+  autoload :Taxon,                  'inat/data/entity/taxon'
+end
 
-class Project < Entity
+class INat::Entity::Project < INat::Entity
+
+  include INat::Data::Types
 
   extend BySLUG
 

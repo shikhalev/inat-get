@@ -1,5 +1,5 @@
 
-project = Project::by_slug 'ptitsy-artinskogo-rayona-zima'
+project = Entity::Project::by_slug 'ptitsy-artinskogo-rayona-zima'
 finish = Date::parse '2023-03-01'
 
 main_ds = select project: project, d2: finish

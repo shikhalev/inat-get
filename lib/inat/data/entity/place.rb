@@ -7,7 +7,9 @@ require_relative '../entity'
 
 autoload :Observation, 'inat/data/entity/observation'
 
-class Place < Entity
+class INat::Entity::Place < INat::Entity
+
+  include INat::Data::Types
 
   extend BySLUG
 

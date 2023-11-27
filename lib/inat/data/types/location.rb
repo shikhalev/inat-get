@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
-class Location
+module INat::Data; end
+module INat::Data::Types; end
+
+class INat::Data::Types::Location
 
   class << self
 
@@ -53,7 +56,7 @@ class Location
 
 end
 
-class Radius
+class INat::Data::Types::Radius
 
   attr_reader :latitude, :longitude, :radius
 
@@ -66,7 +69,7 @@ class Radius
 
 end
 
-class Sector
+class INat::Data::Types::Sector
 
   attr_reader :north, :east, :south, :west
 
@@ -80,10 +83,14 @@ class Sector
 
 end
 
-def radius latitude, longitude, radius
-  Radius::new latitude, longitude, radius
-end
+module INat::Data::Types
 
-def sector north, east, south, west
-  Sector::new north, east, south, west
+  def radius latitude, longitude, radius
+    Radius::new latitude, longitude, radius
+  end
+
+  def sector north, east, south, west
+    Sector::new north, east, south, west
+  end
+
 end

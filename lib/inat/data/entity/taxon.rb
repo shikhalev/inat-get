@@ -9,10 +9,15 @@ require_relative '../enums/iconictaxa'
 
 require_relative 'photo'
 
-autoload :Observation, 'inat/data/entity/observation'
+class INat::Entity
+  autoload :Observation, 'inat/data/entity/observation'
+end
+
 # autoload :Photo,       'inat/data/entity/photo'
 
-class Taxon < Entity
+class INat::Entity::Taxon < INat::Entity
+
+  include INat::Data::Types
 
   api_path :taxa
   api_part :query

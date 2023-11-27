@@ -2,7 +2,7 @@
 
 require 'extra/enum'
 
-class QualityGrade < Enum
+class INat::Data::Types::QualityGrade < Enum
 
   items :research,
         :needs_id,

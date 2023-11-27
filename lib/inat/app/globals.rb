@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Globals
+module INat::App::Globals
 
   class << self
 
@@ -40,9 +40,11 @@ module Globals
 
 end
 
-G = Globals
+G = INat::App::Globals
 
-module LogDSL
+module INat::App::Logger::DSL
+
+  include INat::App::Config
 
   def included mod
     mod.extend LogDSL

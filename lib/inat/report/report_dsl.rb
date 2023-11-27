@@ -2,25 +2,27 @@
 
 require_relative 'table'
 
-module ReportDSL
+module INat::Report::DSL
 
-  include TableDSL
+  include INat
+  include INat::Report
+  include INat::Report::Table::DSL
 
   def class_title object, is_observer: true
     case object
-    when Taxon
+    when Entity::Taxon
       'Таксон'
-    when Place
+    when Entity::Place
       'Территория'
-    when Project
+    when Entity::Project
       'Проект'
-    when User
+    when Entity::User
       if is_observer
         'Наблюдатель'
       else
         'Пользователь'
       end
-    when Calendarian
+    when Report::Period
       'Период'
     else
       'Объект'

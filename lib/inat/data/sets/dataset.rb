@@ -3,7 +3,10 @@
 require_relative 'listers'
 require_relative 'list'
 
-class DataSet
+class INat::Report::DataSet
+
+  include INat
+  include INat::Report
 
   attr_reader :time
   attr_accessor :object                # TODO: переделать select так, чтобы не было необходимости во внешнем присваивании
@@ -74,7 +77,8 @@ class DataSet
   alias :=== :include?
 
   def << observation
-    raise TypeError, "Argument must be an Observation (#{ observation.inspect })!" unless Observation === observation
+    raise TypeError, "Argument must be an Observation (#{ observation.inspect })!" unless Entity::Observation === observation
+    # TODO: добавить массивы и прочее
     if !self.include?(observation)
       @observations << observation
       @by_id[observation.id] = observation
@@ -84,17 +88,17 @@ class DataSet
 
   def | other
     obj = @object == other.object ? @object : nil
-    DataSet::new obj, @observations + other.observations, time: Time::new
+    INat::Report::DataSet::new obj, @observations + other.observations, time: Time::new
   end
 
   def & other
     obj = @object == other.object ? @object : nil
-    DataSet::new obj, @observations.select { |o| other.include?(o) }, time: Time::new
+    INat::Report::DataSet::new obj, @observations.select { |o| other.include?(o) }, time: Time::new
   end
 
   def - other
     obj = @object == other.object ? @object : nil
-    DataSet::new obj, @observations.select { |o| !other.include?(o) }, time: Time::new
+    INat::Report::DataSet::new obj, @observations.select { |o| !other.include?(o) }, time: Time::new
   end
 
   def to_a

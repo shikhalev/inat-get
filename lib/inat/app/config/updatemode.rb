@@ -2,7 +2,7 @@
 
 require 'extra/enum'
 
-class UpdateMode < Enum
+class INat::App::Config::UpdateMode < Enum
 
   items :UPDATE,
         :FORCE,

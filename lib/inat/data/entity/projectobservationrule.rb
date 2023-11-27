@@ -7,9 +7,9 @@ require_relative '../entity'
 # require_relative 'project'
 # autoload :Project, 'inat/data/entity/project'
 
-class Project < Entity; end
+class INat::Entity::Project < INat::Entity; end
 
-class ProjectObservationRule < Entity
+class INat::Entity::ProjectObservationRule < INat::Entity
 
   table :project_observation_rules
 

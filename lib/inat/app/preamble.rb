@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module AppPreamble
+module INat::App::Preamble
 
   private def do_clean_requests
     # NEED: implement

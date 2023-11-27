@@ -865,10 +865,12 @@ SPECIALS = {
 
 class Area
 
-  include Task::DSL
-  include TableDSL
-  include ReportDSL
-  include AppInfo
+  include INat::App::Task::DSL
+  include INat::Report::Table::DSL
+  include INat::Report::DSL
+  include INat::App::Info
+  include INat::Report
+  include INat::Data::Types
 
   def initialize top_count, top_limit
     @top_count = top_count
@@ -895,7 +897,7 @@ class Area
     @main_ls = @main_ds.to_list
     # @projects.map { |pr| select(project_id: pr.id, quality_grade: QualityGrade::RESEARCH, date: (.. @finish)) }.reduce(DataSet::zero, :|)
     @seasons = @main_ds.to_list Listers::YEAR
-    @last_year = Year[@finish]
+    @last_year = Period::Year[@finish]
     seasons_table, @last_ds, @delta = history_table @seasons, last: @last_year, extras: true
     # olds = List::zero
     # @last_year = nil
@@ -1259,6 +1261,9 @@ end
 
 class District < Area
 
+  Project = INat::Entity::Project
+  Place   = INat::Entity::Place
+
   def initialize slug, finish, top_count: 10, top_limit: 10
     super(top_count, top_limit)
     @slug = slug
@@ -1369,7 +1374,7 @@ end
 
 class Special < Area
 
-  include LogDSL
+  include INat::App::Logger::DSL
 
   def initialize slug, finish, top_count: 10, top_limit: 10
     super(top_count, top_limit)

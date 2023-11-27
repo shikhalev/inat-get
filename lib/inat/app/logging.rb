@@ -2,7 +2,7 @@
 
 require 'logger'
 
-class DualLogger
+class INat::App::Logger
 
   def config
     @application.config
@@ -13,14 +13,14 @@ class DualLogger
     v_para = {
       level: config[:verbose].severity
     }
-    @verb = Logger::new STDERR, **v_para
+    @verb = ::Logger::new STDERR, **v_para
     if config[:log][:enable]
       f_para = {
         level: config[:log][:level].severity,
       }
       f_para[:shift_age] = config[:log][:shift][:age] if config[:log][:shift][:age]
       f_para[:shift_level] = config[:log][:shift][:level] if config[:log][:shift][:level]
-      @file = Logger::new config[:log][:file], **f_para
+      @file = ::Logger::new config[:log][:file], **f_para
     else
       @file = nil
     end

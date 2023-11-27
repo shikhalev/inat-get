@@ -7,17 +7,19 @@ require_relative 'ddl'
 require_relative 'db'
 require_relative 'api'
 
-class Entity < Model
+class INat::Entity < INat::Data::Model
 
-  include LogDSL
+  include INat
+  include INat::App::Logger::DSL
 
   class << self
 
-    include LogDSL
+    include INat
+    include INat::App::Logger::DSL
 
     def inherited sub
       sub.send :init
-      DDL << sub
+      Data::DDL << sub
     end
 
     private :new
@@ -115,7 +117,7 @@ class Entity < Model
 
     def load *ids
       return [] if ids.empty? || @api_path.nil?
-      data = API.get @api_path, @api_part, @api_limit, *ids
+      data = INat::API.get @api_path, @api_part, @api_limit, *ids
       data.map { |obj| parse obj }
     end
 
@@ -201,7 +203,7 @@ class Entity < Model
         case field.kind
         when :value
           value = self.send(field.name)
-          if Entity === value && value != self # && !value.process?
+          if INat::Entity === value && value != self # && !value.process?
             value.save
           end
           name, value = field.to_db value
@@ -266,7 +268,9 @@ class Entity < Model
 
 end
 
-module BySLUG
+module INat::Entity::BySLUG
+
+  include INat
 
   def by_slug slug
     # Status::status '[fetch]', "#{ self } : #{ slug } ..."
@@ -277,7 +281,7 @@ module BySLUG
       results = from_db_rows data
     end
     if results.empty?
-      data = API.get @api_path, :path, 1, slug
+      data = INat::API.get @api_path, :path, 1, slug
       results = data.map { |d| parse(d) }
     end
     # Status::status '[fetch]', "#{ self } : #{ slug } DONE"

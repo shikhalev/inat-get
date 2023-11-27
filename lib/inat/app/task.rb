@@ -3,7 +3,7 @@
 require_relative 'globals'
 require_relative 'task/context'
 
-class Task
+class INat::App::Task
 
   CHECK_LIST = %w[ . .inat .rb ]
   FILE_CHECK_LIST = %w[ .inat .iNat .INat .INAT .rb .RB ]
@@ -64,7 +64,7 @@ class Task
     @application = application
     @basename, @path = get_names source
     raise ArgumentError, "File not found: #{source}!" if @path.nil?
-    @context = Task::Context::new self, @basename, @path
+    @context = Context::new self, @basename, @path
   end
 
   def execute

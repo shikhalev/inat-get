@@ -10,9 +10,11 @@ require_relative 'config/messagelevel'
 require_relative 'config/updatemode'
 require_relative 'config/shiftage'
 
-class Application
+# TODO: переделать в модуль INat::App::Config
+class INat::Application
 
-  include AppInfo
+  include INat::App::Info
+  include INat::App::Config
 
   API_DEFAULT = 'https://api.inaturalist.org/v1/'
   DEFAULT_LOG = "./#{ NAME }.log"

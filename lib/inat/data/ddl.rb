@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-module DDL
+# TODO: подумать и заменить константой, возможно
+
+module INat::Data::DDL
 
   class << self
 

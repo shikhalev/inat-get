@@ -2,7 +2,9 @@
 
 require 'extra/enum'
 
-class MessageLevel < Enum
+module INat::App::Config; end
+
+class INat::App::Config::MessageLevel < Enum
 
   item :TRACE, -1
   item :DEBUG,   data: 0

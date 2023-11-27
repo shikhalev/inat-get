@@ -4,13 +4,18 @@ require_relative '../types/std'
 require_relative '../types/extras'
 require_relative '../entity'
 
-autoload :Observation, 'inat/data/entity/observation'
+class INat::Entity
+  autoload :Observation, 'inat/data/entity/observation'
+  autoload :Flag,        'inat/data/entity/flag'
+end
 
-class Photo < Entity
+class INat::Entity::Photo < INat::Entity
+
+  include INat::Data::Types
 
   table :photos
 
-  field :license_code, type: Symbol, index: true
+  field :license_code, type: LicenseCode, index: true
   field :url, type: URI, required: true
   field :square_url, type: URI
   field :medium_url, type: URI

@@ -2,7 +2,9 @@
 
 require 'extra/enum'
 
-class ProjectType < Enum
+# TODO: подумать над занесением внутрь Project
+
+class INat::Data::Types::ProjectType < Enum
 
   items :collection,
         :umbrella,
@@ -17,7 +19,7 @@ class ProjectType < Enum
 
     def parse src
       if src == ''
-        return ProjectType::MANUAL
+        return MANUAL
       else
         super src
       end
@@ -26,7 +28,7 @@ class ProjectType < Enum
   end
 
   def to_s
-    if self == ProjectType::MANUAL
+    if self == MANUAL
       return ''
     else
       super

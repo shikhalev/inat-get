@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
-autoload :DataSet, 'inat/data/sets/dataset'
+module INat::Report
+  autoload :DataSet, 'inat/data/sets/dataset'
+end
 
-class List
+class INat::Report::List
+
+  include INat
+  include INat::Report
 
   attr_reader :lister, :sorter
 
@@ -77,7 +82,7 @@ class List
 
   def << some
     case some
-    when Observation
+    when Entity::Observation
       key = @lister.call some
       if key != nil
         @data[key] ||= DataSet::new key, [], time: @time

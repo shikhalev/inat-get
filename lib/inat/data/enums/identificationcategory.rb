@@ -2,7 +2,7 @@
 
 require 'extra/enum'
 
-class IdentificationCategory < Enum
+class INat::Data::Types::IdentificationCategory < Enum
 
   items :improving,
         :supporting,
