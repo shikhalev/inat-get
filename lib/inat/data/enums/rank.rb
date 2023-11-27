@@ -2,7 +2,7 @@
 
 require 'extra/enum'
 
-class Rank < Enum
+class INat::Data::Types::Rank < Enum
 
   item :stateofmatter, data: 100
   item :kingdom,       data:  70

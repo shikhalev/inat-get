@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ShiftAge
+module INat::App::Config::ShiftAge
 
   class << self
 

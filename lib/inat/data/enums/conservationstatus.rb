@@ -2,7 +2,9 @@
 
 require 'extra/enum'
 
-class CS < Enum
+module INat::Data::Types; end
+
+class INat::Data::Types::ConservationStatus < Enum
 
   item :NE, data:  0
   item :DD, data:  5
@@ -26,5 +28,3 @@ class CS < Enum
 
   freeze
 end
-
-ConservationStatus = CS

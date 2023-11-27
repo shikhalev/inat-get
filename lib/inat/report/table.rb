@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Table
+class INat::Report::Table
 
   attr_reader :columns
 
@@ -128,7 +128,9 @@ class Table
 
 end
 
-module TableDSL
+module INat::Report::Table::DSL
+
+  include INat::Report
 
   private def table &block
     tbl = Table::new

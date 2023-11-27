@@ -199,6 +199,8 @@ class Period
 
   end
 
+  private_constant :Num
+
   def coerce num
     case num
     when Integer, Float, Rational

@@ -2,7 +2,7 @@
 
 require 'extra/enum'
 
-class IconicTaxa < Enum
+class INat::Data::Types::IconicTaxa < Enum
 
   items :Aves,
         :Amphibia,

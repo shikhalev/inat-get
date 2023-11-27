@@ -4,11 +4,15 @@ require_relative 'dsl'
 require_relative '../../report/table'
 require_relative '../../report/report_dsl'
 
-class Task::Context
+class INat::App::Task::Context
 
-  include Task::DSL
-  include TableDSL
-  include ReportDSL
+  include INat::App::Task::DSL
+  include INat::Report::DSL
+  include INat::Report::Table::DSL
+
+  include INat
+  include INat::App
+  include INat::Report
 
   attr_accessor :name
 

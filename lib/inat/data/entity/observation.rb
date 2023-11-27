@@ -8,20 +8,24 @@ require_relative '../enums/qualitygrade'
 require_relative '../enums/licensecode'
 require_relative '../enums/geoprivacy'
 
-autoload :Taxon,            'inat/data/entity/taxon'
-autoload :User,             'inat/data/entity/user'
-autoload :Flag,             'inat/data/entity/flag'
-autoload :ObservationSound, 'inat/data/entity/observationsound'
-autoload :Sound,            'inat/data/entity/sound'
-autoload :ObservationPhoto, 'inat/data/entity/observationphoto'
-autoload :Photo,            'inat/data/entity/photo'
-autoload :Place,            'inat/data/entity/place'
-autoload :Project,          'inat/data/entity/project'
-autoload :Comment,          'inat/data/entity/comment'
-autoload :Identification,   'inat/data/entity/identification'
-autoload :Vote,             'inat/data/entity/vote'
+class INat::Entity
+  autoload :Taxon,            'inat/data/entity/taxon'
+  autoload :User,             'inat/data/entity/user'
+  autoload :Flag,             'inat/data/entity/flag'
+  autoload :ObservationSound, 'inat/data/entity/observationsound'
+  autoload :Sound,            'inat/data/entity/sound'
+  autoload :ObservationPhoto, 'inat/data/entity/observationphoto'
+  autoload :Photo,            'inat/data/entity/photo'
+  autoload :Place,            'inat/data/entity/place'
+  autoload :Project,          'inat/data/entity/project'
+  autoload :Comment,          'inat/data/entity/comment'
+  autoload :Identification,   'inat/data/entity/identification'
+  autoload :Vote,             'inat/data/entity/vote'
+end
 
-class Observation < Entity
+class INat::Entity::Observation < INat::Entity
+
+  include INat::Data::Types
 
   api_path :observations
   api_part :query

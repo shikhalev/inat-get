@@ -3,11 +3,23 @@
 require_relative '../app/globals'
 require_relative 'types/std'
 
-autoload :Entity, 'inat/data/entity'
+class Module
 
-class Model
+  def short_name
+    name.split('::').last
+  end
 
-  include LogDSL
+end
+
+module INat
+  autoload :Entity, 'inat/data/entity'
+end
+
+module INat::Data; end
+
+class INat::Data::Model
+
+  include INat::App::Logger::DSL
 
   class Field
 
@@ -42,7 +54,7 @@ class Model
 
   end
 
-  class ScalarField < Model::Field
+  class ScalarField < Field
 
     attr_reader :index, :unique, :primary_key
 
@@ -51,7 +63,7 @@ class Model
     end
 
     def initialize model, name, type, id_field, required, index, unique, primary_key
-      if Class === type && Entity > type && id_field == nil
+      if Class === type && INat::Entity > type && id_field == nil
         id_field = "#{ name }_id".intern
       end
       super model, name, type, id_field
@@ -74,7 +86,7 @@ class Model
         md.define_method "#{ ni }=" do |value|
           prevalue = instance_variable_get "@#{ ni }"
           if prevalue != value
-            debug "ASS: #{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" if prevalue != nil && self.class.name == 'Taxon'
+            debug "ASS: #{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" if prevalue != nil && self.class.short_name == 'Taxon'
             instance_variable_set "@#{ ni }", value
             instance_variable_set "@saved", false
           end
@@ -92,7 +104,7 @@ class Model
         md.define_method "#{ nm }=" do |value|
           prevalue = instance_variable_get "@#{ ni }"
           if prevalue != value&.id
-            debug "ASS: #{ self.id }: #{ nm } / #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" if prevalue != nil && self.class.name == 'Taxon'
+            debug "ASS: #{ self.id }: #{ nm } / #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect }" if prevalue != nil && self.class.short_name == 'Taxon'
             instance_variable_set "@#{ ni }", value&.id
             instance_variable_set "@saved", false
           end
@@ -105,7 +117,7 @@ class Model
           raise TypeError, "Invalid '#{ nm }' value: #{ value.inspect }!", caller unless tp === value || (value == nil && !rq)
           prevalue = instance_variable_get "@#{ nm }"
           if prevalue != value
-            debug "ASS: #{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect }" if prevalue != nil && self.class.name == 'Taxon'
+            debug "ASS: #{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect }" if prevalue != nil && self.class.short_name == 'Taxon'
             instance_variable_set "@#{ nm }", value
             instance_variable_set "@saved", false
           end
@@ -207,7 +219,7 @@ class Model
 
   end
 
-  class ArrayField < Model::Field
+  class ArrayField < Field
 
     attr_reader :back_field
 
@@ -223,7 +235,7 @@ class Model
           raise ArgumentError, "Argument 'id_field' is required for name '#{ name }'!", caller[1..]
         end
       end
-      back_field = "#{ model.name.downcase }_id".intern if back_field == nil
+      back_field = "#{ model.short_name.downcase }_id".intern if back_field == nil
       super model, name, type, id_field
       @owned = owned
       @back_field = back_field
@@ -248,7 +260,7 @@ class Model
             value = value&.sort.uniq
           end
           if prevalue != value
-            debug "ASS: #{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" if prevalue != nil && self.class.name == 'Taxon'
+            debug "ASS: #{ self.id }: #{ ni } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" if prevalue != nil && self.class.short_name == 'Taxon'
             instance_variable_set "@#{ ni }", value
             instance_variable_set "@saved", false
           end
@@ -274,7 +286,7 @@ class Model
           end
           prevalue = instance_variable_get("@#{ nm }")
           if prevalue&.sort != value&.sort
-            debug "ASS: #{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" if prevalue != nil && self.class.name == 'Taxon'
+            debug "ASS: #{ self.id }: #{ nm } = #{ prevalue.inspect } <=> #{ value.inspect } :: #{ caller[..2] }" if prevalue != nil && self.class.short_name == 'Taxon'
             instance_variable_set "@#{ nm }", value
             instance_variable_set "@saved", false
           end
@@ -292,13 +304,13 @@ class Model
 
   end
 
-  class ManyToManyField < Model::ArrayField
+  class ManyToManyField < ArrayField
 
     attr_reader :table_name, :link_field, :index
 
     def initialize model, name, type, id_field, owned, table_name, back_field, link_field, index
-      table_name = "#{ model.name.downcase }_#{ name }".intern if table_name == nil
-      link_field = "#{ type.name.downcase }_id".intern         if link_field == nil
+      table_name = "#{ model.short_name.downcase }_#{ name }".intern if table_name == nil
+      link_field = "#{ type.short_name.downcase }_id".intern         if link_field == nil
       super model, name, type, id_field, owned, back_field
       @table_name = table_name
       @link_field = link_field
@@ -327,7 +339,7 @@ class Model
 
   end
 
-  class OneToManyField < Model::ArrayField
+  class OneToManyField < ArrayField
 
     def kind
       :backs
@@ -335,7 +347,7 @@ class Model
 
   end
 
-  class SpecialField < Model::Field
+  class SpecialField < Field
 
     def initialize model, name, type, &block
       raise ArgumentError, "Block is required!", caller[1..] unless block_given?
@@ -359,7 +371,7 @@ class Model
 
   end
 
-  class IgnoreField < Model::SpecialField
+  class IgnoreField < SpecialField
 
     def initialize model, name
       super model, name, Object do
@@ -448,7 +460,7 @@ class Model
 
     private def links name, item_type: nil, ids_field: nil, owned: true, table_name: nil, back_field: nil, link_field: nil, index: false
       raise TypeError, "Field name must be a Symbol!", caller            unless Symbol === name
-      raise TypeError, "Item type must be an Entity subclass!", caller   unless Class === item_type && Entity > item_type
+      raise TypeError, "Item type must be an Entity subclass!", caller   unless Class === item_type && INat::Entity > item_type
       raise TypeError, "Argument 'ids_field' must be a Symbol!", caller  unless Symbol === ids_field || ids_field == nil
       raise TypeError, "Argument 'table_name' must be a Symbol!", caller unless Symbol === table_name || table_name == nil
       raise TypeError, "Argument 'back_field' must be a Symbol!", caller unless Symbol === back_field || back_field == nil
@@ -462,7 +474,7 @@ class Model
 
     private def backs name, item_type: nil, ids_field: nil, owned: true, back_field: nil
       raise TypeError, "Field name must be a Symbol!", caller            unless Symbol === name
-      raise TypeError, "Item type must be an Entity subclass!", caller   unless Class === item_type && Entity > item_type
+      raise TypeError, "Item type must be an Entity subclass!", caller   unless Class === item_type && INat::Entity > item_type
       raise TypeError, "Argument 'ids_field' must be a Symbol!", caller  unless Symbol === ids_field || ids_field == nil
       raise TypeError, "Argument 'back_field' must be a Symbol!", caller unless Symbol === back_field || back_field == nil
       raise TypeError, "Argument 'owned' must be a Boolean!", caller     unless Boolean === owned

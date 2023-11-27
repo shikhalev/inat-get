@@ -2,7 +2,7 @@
 
 require 'extra/enum'
 
-class ProjectAdminRole < Enum
+class INat::Data::Types::ProjectAdminRole < Enum
 
   items :curator,
         :manager

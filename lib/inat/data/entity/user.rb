@@ -4,9 +4,11 @@ require_relative '../types/std'
 require_relative '../types/extras'
 require_relative '../entity'
 
-autoload :Observation, 'inat/data/entity/observation'
+class INat::Entity
+  autoload :Observation, 'inat/data/entity/observation'
+end
 
-class User < Entity
+class INat::Entity::User < INat::Entity
 
   api_path :users
   api_part :path
@@ -48,7 +50,7 @@ class User < Entity
       results = from_db_rows data
     end
     if results.empty?
-      data = API.query 'users/autocomplete', first_only: true, q: login
+      data = INat::API.query 'users/autocomplete', first_only: true, q: login
       results = data.select { |u| u['login'] == login.to_s }.map { |d| parse(d) }
     end
     if results.empty?

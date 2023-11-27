@@ -6,9 +6,10 @@ require_relative 'preamble'
 require_relative 'globals'
 require_relative 'task'
 
-class Application
+class INat::Application
 
-  include AppPreamble
+  include INat::App
+  include INat::App::Preamble
 
   def logger
     G.logger
@@ -17,7 +18,7 @@ class Application
   def initialize
     setup!
     G.config = @config.freeze
-    G.logger = DualLogger::new self
+    G.logger = INat::App::Logger::new self
   end
 
   private def tasks!

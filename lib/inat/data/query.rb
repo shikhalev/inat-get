@@ -14,9 +14,12 @@ require_relative 'types/std'
 require_relative 'types/location'
 require_relative 'types/extras'
 
-class Query
+class INat::Query
 
-  include LogDSL
+  include INat
+  include INat::App
+  include INat::App::Logger::DSL
+  include INat::Data::Types
 
   private def parse_accuracy value
     case value
@@ -1077,17 +1080,17 @@ class Query
         if mode != UpdateMode::MINIMAL
           actual_time = Time::new - Period::parse(G.config[:data][:update_period])
         end
-        actuals = Request::from_db_rows(DB.execute("SELECT * FROM requests WHERE time >= ?", actual_time.to_db)).select { |rq| self.in?(rq.query) }
+        actuals = Entity::Request::from_db_rows(DB.execute("SELECT * FROM requests WHERE time >= ?", actual_time.to_db)).select { |rq| self.in?(rq.query) }
       end
       if actuals.empty? || mode == UpdateMode::FORCE
         # 2. Ищем чего бы обновить
-        request = Request::from_db_rows(DB.execute("SELECT * FROM requests WHERE query = ?", api_query)).first
+        request = Entity::Request::from_db_rows(DB.execute("SELECT * FROM requests WHERE query = ?", api_query)).first
         updated_since = nil
         if request == nil
           query_string = api_query
           project_id = @api_params[:project_id]
           project_id = nil unless Integer === project_id
-          request = Request::create query_string, project_id
+          request = Entity::Request::create query_string, project_id
           request.save
         else
           updated_since = request.time if mode != UpdateMode::RELOAD
@@ -1104,7 +1107,7 @@ class Query
           tt = nil
           cc = 0
           current_time = Time::new
-          API::query(:observations, **params) do |json, total|
+          INat::API::query(:observations, **params) do |json, total|
             tt ||= total
             cc += 1
             pc = cc * 100 / tt
@@ -1113,7 +1116,7 @@ class Query
             pe = Period::make seconds: te
             pt = Period::make seconds: (Time::new - current_time).to_i
             Status::status nil, "Query \##{ @int_key } : R\##{ request.id } : parsed #{ format("%d of %d : %3d%% : time %s remain %s", cc, tt, pc, pt.to_hs, pe.to_hs) }"
-            obs = Observation::parse json
+            obs = Entity::Observation::parse json
             obs.save
             DB.execute "INSERT OR REPLACE INTO request_observations (request_id, observation_id) VALUES (?, ?);", request.id, obs.id
           end
@@ -1123,12 +1126,12 @@ class Query
         # TODO: разобраться с удалением устаревшего
         # NEED: разобраться с частичной загрузкой — большие проекты грузятся недопустимо долго
         #       возможно, стоит запараллелить обработку
-        request = Request::read(request.id).first
+        request = Entity::Request::read(request.id).first
       end
     end
     # TODO: разобраться, где тупня
     sql, sql_args = db_where
-    result = Observation::from_db_rows(DB.execute("SELECT * FROM observations o#{ sql.empty? && '' || ' WHERE ' }#{ sql };", *sql_args))
+    result = Entity::Observation::from_db_rows(DB.execute("SELECT * FROM observations o#{ sql.empty? && '' || ' WHERE ' }#{ sql };", *sql_args))
     if !@r_match.empty?
       result = result.filter { |o| self.match?(o) }
     end

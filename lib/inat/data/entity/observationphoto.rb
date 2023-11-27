@@ -9,10 +9,12 @@ require_relative '../entity'
 # require_relative 'observation'
 # require_relative 'photo'
 
-autoload :Observation, 'inat/data/entity/observation'
-autoload :Photo,       'inat/data/entity/photo'
+class INat::Entity
+  autoload :Observation, 'inat/data/entity/observation'
+  autoload :Photo,       'inat/data/entity/photo'
+end
 
-class ObservationPhoto < Entity
+class INat::Entity::ObservationPhoto < INat::Entity
 
   table :observation_photos
 

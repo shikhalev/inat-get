@@ -11,10 +11,12 @@ require_relative '../entity'
 
 # class Observation < Entity; end
 
-autoload :Observation, 'inat/data/entity/observation'
-autoload :Sound,       'inat/data/entity/sound'
+class INat::Entity
+  autoload :Observation, 'inat/data/entity/observation'
+  autoload :Sound,       'inat/data/entity/sound'
+end
 
-class ObservationSound < Entity
+class INat::Entity::ObservationSound < INat::Entity
 
   table :observation_sounds
 

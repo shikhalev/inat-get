@@ -8,9 +8,16 @@ require_relative '../enums/projectadminrole'
 # require_relative 'project'
 # autoload :Project, 'inat/data/entity/project'
 
-class Project < Entity; end
+# class Project < Entity; end
 
-class ProjectAdmin < Entity
+class INat::Entity::Project < INat::Entity; end
+
+#   autoload :Project, 'inat/data/entity/project'
+# end
+
+class INat::Entity::ProjectAdmin < INat::Entity
+
+  include INat::Data::Types
 
   table :project_admins
 

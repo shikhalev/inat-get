@@ -8,11 +8,13 @@ require_relative '../../data/query'
 require_relative '../../data/sets/dataset'
 require_relative '../../data/sets/list'
 
-class Task; end
+class INat::App::Task; end
 
-module Task::DSL
+module INat::App::Task::DSL
 
-  include LogDSL
+  include INat
+  include INat::Report
+  include INat::App::Logger::DSL
 
   def select **params
     query = Query::new(**params)

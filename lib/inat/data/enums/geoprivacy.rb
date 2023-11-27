@@ -2,7 +2,9 @@
 
 require 'extra/enum'
 
-class GeoPrivacy < Enum
+module INat::Data::Types; end
+
+class INat::Data::Types::GeoPrivacy < Enum
 
   items :open,
         :obscured,

@@ -4,7 +4,7 @@ require_relative 'globals'
 
 # TODO: переделать на отдельный поток и очередь статусов. Ввести отдельно ключ, как идентификатор запроса, например.
 
-module Status
+module INat::App::Status
 
   class << self
 
@@ -70,5 +70,5 @@ module Status
 
 end
 
-Status::init
-G.status = Status
+INat::App::Status::init
+G.status = INat::App::Status

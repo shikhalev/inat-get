@@ -8,11 +8,15 @@ require_relative '../entity'
 
 require_relative '../enums/identificationcategory'
 
-autoload :Observation, 'inat/data/entity/observation'
-autoload :Taxon,       'inat/data/entity/taxon'
-autoload :Flag,        'inat/data/entity/flag'
+class INat::Entity
+  autoload :Observation, 'inat/data/entity/observation'
+  autoload :Taxon,       'inat/data/entity/taxon'
+  autoload :Flag,        'inat/data/entity/flag'
+end
 
-class Identification < Entity
+class INat::Entity::Identification < INat::Entity
+
+  include INat::Data::Types
 
   api_path :identifications
   api_part :query

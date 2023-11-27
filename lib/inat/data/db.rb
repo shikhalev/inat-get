@@ -6,9 +6,11 @@ require 'sqlite3'
 require_relative '../app/globals'
 require_relative 'ddl'
 
-class DB
+class INat::DB
 
-  include LogDSL
+  include INat
+  include INat::App
+  include INat::App::Logger::DSL
 
   def self.get_finalizer *dbs
     proc do
@@ -27,7 +29,7 @@ class DB
       @data.auto_vacuum = 1
       @data.results_as_hash = true
       @data.foreign_keys = true
-      @data.execute_batch DDL.DDL
+      @data.execute_batch Data::DDL.DDL
     end
     ObjectSpace.define_finalizer self, self.class.get_finalizer(@data)
   end
@@ -65,8 +67,10 @@ class DB
 
   class << self
 
+    private :new
+
     def instance
-      @instance ||= DB::new
+      @instance ||= new
       @instance
     end
 
