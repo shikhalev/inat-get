@@ -8,7 +8,7 @@ require_relative '../enums/qualitygrade'
 require_relative '../enums/licensecode'
 require_relative '../enums/geoprivacy'
 
-class INat::Entity
+module INat::Entity
   autoload :Taxon,            'inat/data/entity/taxon'
   autoload :User,             'inat/data/entity/user'
   autoload :Flag,             'inat/data/entity/flag'
@@ -23,9 +23,10 @@ class INat::Entity
   autoload :Vote,             'inat/data/entity/vote'
 end
 
-class INat::Entity::Observation < INat::Entity
+class INat::Entity::Observation < INat::Data::Entity
 
   include INat::Data::Types
+  include INat::Entity
 
   api_path :observations
   api_part :query

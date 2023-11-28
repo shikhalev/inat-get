@@ -17,12 +17,6 @@ module INat::App::Status
       end
     end
 
-    # private def get_num
-    #   @num ||= 0
-    #   @num += 1
-    #   @num
-    # end
-
     def init
       @lines = {}
       @mutex = Mutex::new

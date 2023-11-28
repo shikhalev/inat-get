@@ -7,7 +7,7 @@ require_relative 'ddl'
 require_relative 'db'
 require_relative 'api'
 
-class INat::Entity < INat::Data::Model
+class INat::Data::Entity < INat::Data::Model
 
   include INat
   include INat::App::Logger::DSL
@@ -268,28 +268,32 @@ class INat::Entity < INat::Data::Model
 
 end
 
-module INat::Entity::BySLUG
+module INat::Entity
 
-  include INat
+  module BySLUG
 
-  def by_slug slug
-    # Status::status '[fetch]', "#{ self } : #{ slug } ..."
-    @entities ||= {}
-    results = @entities.values.select { |e| e.slug == slug.intern }
-    if results.empty?
-      data = DB.execute "SELECT * FROM #{ table } WHERE slug = ?", slug.to_s
-      results = from_db_rows data
+    include INat
+
+    def by_slug(slug)
+      # Status::status '[fetch]', "#{ self } : #{ slug } ..."
+      @entities ||= {}
+      results = @entities.values.select { |e| e.slug == slug.intern }
+      if results.empty?
+        data = DB.execute "SELECT * FROM #{table} WHERE slug = ?", slug.to_s
+        results = from_db_rows data
+      end
+      if results.empty?
+        data = INat::API.get @api_path, :path, 1, slug
+        results = data.map { |d| parse(d) }
+      end
+      # Status::status '[fetch]', "#{ self } : #{ slug } DONE"
+      if results.empty?
+        nil
+      else
+        results.first
+      end
     end
-    if results.empty?
-      data = INat::API.get @api_path, :path, 1, slug
-      results = data.map { |d| parse(d) }
-    end
-    # Status::status '[fetch]', "#{ self } : #{ slug } DONE"
-    if results.empty?
-      nil
-    else
-      results.first
-    end
+
   end
 
 end

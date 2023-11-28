@@ -6,10 +6,7 @@ require_relative '../types/location'
 require_relative '../entity'
 require_relative '../enums/projecttype'
 
-# require_relative 'projectadmin'
-# require_relative 'projectobservationrule'
-
-class INat::Entity
+module INat::Entity
   autoload :Observation,            'inat/data/entity/observation'
   autoload :User,                   'inat/data/entity/user'
   autoload :Place,                  'inat/data/entity/place'
@@ -19,9 +16,10 @@ class INat::Entity
   autoload :Taxon,                  'inat/data/entity/taxon'
 end
 
-class INat::Entity::Project < INat::Entity
+class INat::Entity::Project < INat::Data::Entity
 
   include INat::Data::Types
+  include INat::Entity
 
   extend BySLUG
 

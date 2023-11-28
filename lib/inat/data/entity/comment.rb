@@ -4,13 +4,15 @@ require_relative '../types/std'
 require_relative '../types/extras'
 require_relative '../entity'
 
-class INat::Entity
+module INat::Entity
   autoload :Observation, 'inat/data/entity/observation'
   autoload :User,        'inat/data/entity/user'
   autoload :Flag,        'inat/data/entity/flag'
 end
 
-class INat::Entity::Comment < INat::Entity
+class INat::Entity::Comment < INat::Data::Entity
+
+  include INat::Entity
 
   table :comments
 

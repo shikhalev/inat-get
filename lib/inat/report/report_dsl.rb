@@ -8,7 +8,7 @@ module INat::Report::DSL
   include INat::Report
   include INat::Report::Table::DSL
 
-  def class_title object, is_observer: true
+  private def class_title object, is_observer: true
     case object
     when Entity::Taxon
       'Таксон'

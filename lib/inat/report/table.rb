@@ -132,10 +132,12 @@ module INat::Report::Table::DSL
 
   include INat::Report
 
-  private def table &block
+  def table &block
     tbl = Table::new
     tbl.instance_eval(&block) if block_given?
     tbl
   end
+
+  module_function :table
 
 end

@@ -4,12 +4,11 @@ require_relative '../types/std'
 require_relative '../types/extras'
 require_relative '../entity'
 
-# require_relative 'project'
-# autoload :Project, 'inat/data/entity/project'
+class INat::Entity::Project < INat::Data::Entity; end
 
-class INat::Entity::Project < INat::Entity; end
+class INat::Entity::ProjectObservationRule < INat::Data::Entity
 
-class INat::Entity::ProjectObservationRule < INat::Entity
+  include INat::Entity
 
   table :project_observation_rules
 

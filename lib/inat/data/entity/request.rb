@@ -5,12 +5,14 @@ require_relative '../types/extras'
 require_relative '../entity'
 require_relative '../db'
 
-class INat::Entity
+module INat::Entity
   autoload :Observation, 'inat/data/entity/observation'
   autoload :Project,     'inat/data/entity/project'
 end
 
-class INat::Entity::Request < INat::Entity
+class INat::Entity::Request < INat::Data::Entity
+
+  include INat::Entity
 
   table :requests
 

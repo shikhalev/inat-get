@@ -6,17 +6,14 @@ require_relative '../types/std'
 require_relative '../types/extras'
 require_relative '../entity'
 
-# require_relative 'observation'
-# require_relative 'sound'
-
-# class Observation < Entity; end
-
-class INat::Entity
+module INat::Entity
   autoload :Observation, 'inat/data/entity/observation'
   autoload :Sound,       'inat/data/entity/sound'
 end
 
-class INat::Entity::ObservationSound < INat::Entity
+class INat::Entity::ObservationSound < INat::Data::Entity
+
+  include INat::Entity
 
   table :observation_sounds
 

@@ -5,11 +5,14 @@ require_relative '../types/extras'
 require_relative '../types/location'
 require_relative '../entity'
 
-autoload :Observation, 'inat/data/entity/observation'
+module INat::Entity
+  autoload :Observation, 'inat/data/entity/observation'
+end
 
-class INat::Entity::Place < INat::Entity
+class INat::Entity::Place < INat::Data::Entity
 
   include INat::Data::Types
+  include INat::Entity
 
   extend BySLUG
 

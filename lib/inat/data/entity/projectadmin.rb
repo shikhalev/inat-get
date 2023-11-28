@@ -5,19 +5,12 @@ require_relative '../types/extras'
 require_relative '../entity'
 require_relative '../enums/projectadminrole'
 
-# require_relative 'project'
-# autoload :Project, 'inat/data/entity/project'
+class INat::Entity::Project < INat::Data::Entity; end
 
-# class Project < Entity; end
-
-class INat::Entity::Project < INat::Entity; end
-
-#   autoload :Project, 'inat/data/entity/project'
-# end
-
-class INat::Entity::ProjectAdmin < INat::Entity
+class INat::Entity::ProjectAdmin < INat::Data::Entity
 
   include INat::Data::Types
+  include INat::Entity
 
   table :project_admins
 

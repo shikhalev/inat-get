@@ -11,7 +11,7 @@ class Module
 
 end
 
-module INat
+module INat::Data
   autoload :Entity, 'inat/data/entity'
 end
 
@@ -63,7 +63,7 @@ class INat::Data::Model
     end
 
     def initialize model, name, type, id_field, required, index, unique, primary_key
-      if Class === type && INat::Entity > type && id_field == nil
+      if Class === type && INat::Data::Entity > type && id_field == nil
         id_field = "#{ name }_id".intern
       end
       super model, name, type, id_field
