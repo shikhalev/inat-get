@@ -12,6 +12,7 @@ class INat::DB
   include INat::App
   include INat::App::Logger::DSL
 
+  # @private
   def self.get_finalizer *dbs
     proc do
       dbs.each { |db| db.close }

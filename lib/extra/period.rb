@@ -185,6 +185,7 @@ class Period
     self.class.make(seconds: (@value / num).to_i)
   end
 
+  # @private
   class Num
 
     attr_reader :value
@@ -214,7 +215,9 @@ end
 
 class Time
 
+  # @private
   alias :preperiod_plus :+
+  # @private
   alias :preperiod_minus :-
 
   def + arg
@@ -231,22 +234,32 @@ end
 
 class Numeric
 
+  #
+  # @return [Period]
   def weeks
     Period::make(weeks: 1) * self
   end
 
+  #
+  # @return [Period]
   def days
     Period::make(days: 1) * self
   end
 
+  #
+  # @return [Period]
   def hours
     Period::make(hours: 1) * self
   end
 
+  #
+  # @return [Period]
   def minutes
     Period::make(minutes: 1) * self
   end
 
+  #
+  # @return [Period]
   def seconds
     Period::make(seconds: 1) * self
   end

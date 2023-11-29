@@ -2,17 +2,34 @@
 
 # TODO: подумать и заменить константой, возможно
 
-module INat::Data::DDL
+class INat::Data::DDL
+
+  def initialize
+    @models = []
+  end
+
+  def <<(model)
+    @models << model
+  end
+
+  def DDL
+    @models.map(&:DDL).join("\n")
+  end
 
   class << self
 
-    def << model
-      @models ||= []
-      @models << model
+    private :new
+
+    def instance
+      @instance ||= new
+    end
+
+    def <<(model)
+      instance << model
     end
 
     def DDL
-      @models.map(&:DDL).join("\n")
+      instance.DDL
     end
 
   end

@@ -13,6 +13,8 @@ require_relative 'config/shiftage'
 # TODO: переделать в модуль INat::App::Config
 class INat::Application
 
+  using DeepMerge
+
   include INat::App::Info
   include INat::App::Config
 

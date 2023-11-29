@@ -12,6 +12,7 @@ class Enum
 
     private :new
 
+    # @!scope class
     private def item name, order = nil, description: nil, data: nil
       raise TypeError, "Name of enum value must be a Symbol!", caller unless Symbol === name
       raise TypeError, "Order of enum value must be a Integer!", caller unless nil === order || Integer === order
@@ -35,6 +36,7 @@ class Enum
       return value
     end
 
+    # @!scope class
     private def items *names, **names_with_order
       names.each do |name|
         item name
@@ -45,6 +47,7 @@ class Enum
       return values
     end
 
+    # @!scope class
     private def item_alias **params
       @aliases ||= {}
       params.each do |name, value|
@@ -94,6 +97,7 @@ class Enum
       end
     end
 
+    # @!scope class
     private def get name_or_order
       return nil if name == nil
       result = @by_name[name_or_order] || @by_order[name_or_order]

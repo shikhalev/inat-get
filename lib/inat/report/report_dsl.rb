@@ -157,7 +157,7 @@ module INat::Report::DSL
 
   # TODO: разобраться с разными count в разных контекстах.
   def rating_table list, limit: 1, count: 3, details: true, key: :species, summary: false
-    object_title = class_title list.first.object
+    object_title = class_title list.first&.object
     rating = table do
       column '#', width: 3, align: :right, data: :line_no
       column object_title, data: :object

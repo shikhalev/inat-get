@@ -24,6 +24,8 @@ class INat::Entity::Taxon < INat::Data::Entity
 
   table :taxa
 
+  # @!group Fields
+
   field :is_active, type: Boolean, index: true
   # field :ancestry, type: Ancestry
   # field :min_species_ancestry, type: Ancestry
@@ -74,6 +76,8 @@ class INat::Entity::Taxon < INat::Data::Entity
 
   ignore :observations_count
   ignore :universal_search_rank
+
+  # @!endgroup
 
   def === other
     other.id == self.id || other.ancestor_ids.include?(self.id)

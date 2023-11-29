@@ -93,4 +93,6 @@ module INat::Data::Types
     Sector::new north, east, south, west
   end
 
+  module_function :radius, :sector
+
 end

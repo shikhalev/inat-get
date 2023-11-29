@@ -34,6 +34,8 @@ class INat::Entity::Observation < INat::Data::Entity
 
   table :observations
 
+  # @!group Fields
+
   field :quality_grade, type: QualityGrade, required: true, index: true
   field :uuid, type: UUID, unique: true
   field :species_guess, type: String
@@ -106,6 +108,10 @@ class INat::Entity::Observation < INat::Data::Entity
   field :photo_licensed, type: Boolean, index: true
   field :rank, type: Rank, index: true
 
+  # @!endgroup
+
+  # @!group Callbacks
+
   def post_update
     t = self.taxon
     if t
@@ -120,6 +126,8 @@ class INat::Entity::Observation < INat::Data::Entity
       self.photo_licensed = self.observation_photos.any? { |p| p.photo.license_code != nil }
     end
   end
+
+  # @!endgroup
 
   def normalized_taxon ranks
     ranks = (ranks .. ranks) if Rank === ranks

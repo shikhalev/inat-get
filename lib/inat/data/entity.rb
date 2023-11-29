@@ -14,6 +14,8 @@ class INat::Data::Entity < INat::Data::Model
 
   class << self
 
+    using INat::Types::Std
+
     include INat
     include INat::App::Logger::DSL
 
@@ -174,7 +176,11 @@ class INat::Data::Entity < INat::Data::Model
 
   end
 
+  # @!group Fields
+
   field :id, type: Integer, primary_key: true
+
+  # @!endgroup
 
   def initialize id
     super()

@@ -22,6 +22,8 @@ class INat::Entity::Place < INat::Data::Entity
 
   table :places
 
+  # @!group Fields
+
   field :uuid, type: UUID, unique: true
   field :name, type: String, index: true, required: true
   field :slug, type: Symbol, index: true
@@ -35,6 +37,8 @@ class INat::Entity::Place < INat::Data::Entity
   ignore :bounding_box_geojson
 
   links :ancestor_places, item_type: Place, table_name: :place_ancestors, link_field: :ancestor_id, index: true
+
+  # @!endgroup
 
   def === other
     self.id == other.id && other.ancestor_place_ids.include?(self.id)

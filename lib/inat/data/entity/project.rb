@@ -29,6 +29,8 @@ class INat::Entity::Project < INat::Data::Entity
 
   table :projects
 
+  # @!group Fields
+
   field :slug, type: Symbol, index: true
   field :title, type: String, index: true, required: true
   field :description, type: String
@@ -88,6 +90,8 @@ class INat::Entity::Project < INat::Data::Entity
   ignore :terms
   ignore :search_parameters
   ignore :rule_preferences
+
+  # @!endgroup
 
   def to_s
     "<a href=\"https://www.inaturalist.org/projects/#{ id }\"><i class=\"fa fa-briefcase\"></i>  #{ title }</a>"

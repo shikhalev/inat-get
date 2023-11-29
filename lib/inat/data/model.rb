@@ -3,14 +3,6 @@
 require_relative '../app/globals'
 require_relative 'types/std'
 
-class Module
-
-  def short_name
-    name.split('::').last
-  end
-
-end
-
 module INat::Data
   autoload :Entity, 'inat/data/entity'
 end
@@ -21,6 +13,7 @@ class INat::Data::Model
 
   include INat::App::Logger::DSL
 
+  # @private
   class Field
 
     attr_reader :model, :name, :type, :id_field
@@ -54,7 +47,10 @@ class INat::Data::Model
 
   end
 
+  # @private
   class ScalarField < Field
+
+    using INat::Types::Std
 
     attr_reader :index, :unique, :primary_key
 
@@ -219,7 +215,10 @@ class INat::Data::Model
 
   end
 
+  # @private
   class ArrayField < Field
+
+    using INat::Types::Std
 
     attr_reader :back_field
 
@@ -304,7 +303,10 @@ class INat::Data::Model
 
   end
 
+  # @private
   class ManyToManyField < ArrayField
+
+    using INat::Types::Std
 
     attr_reader :table_name, :link_field, :index
 
@@ -339,6 +341,7 @@ class INat::Data::Model
 
   end
 
+  # @private
   class OneToManyField < ArrayField
 
     def kind
@@ -347,6 +350,7 @@ class INat::Data::Model
 
   end
 
+  # @private
   class SpecialField < Field
 
     def initialize model, name, type, &block
@@ -371,6 +375,7 @@ class INat::Data::Model
 
   end
 
+  # @private
   class IgnoreField < SpecialField
 
     def initialize model, name
@@ -445,7 +450,15 @@ class INat::Data::Model
       result.freeze
     end
 
-    private def field name, type: nil, id_field: nil, required: false, index: false, unique: false, primary_key: false
+    # Defines a new field
+    # @param [Symbol] name
+    # @param [Class] type
+    # @return [void]
+    # @!macro [attach] field
+    #   @api public
+    #   @!attribute [rw]
+    #   @return [$2] the +$1+ field
+    def field name, type: nil, id_field: nil, required: false, index: false, unique: false, primary_key: false
       raise TypeError, "Field name must be a Symbol!", caller              unless Symbol === name
       raise TypeError, "Field type must be a Module!", caller              unless Module === type
       raise TypeError, "Argument 'id_field' must be a Symbol!", caller     unless Symbol === id_field || id_field == nil
@@ -458,7 +471,15 @@ class INat::Data::Model
       @fields[name].implement
     end
 
-    private def links name, item_type: nil, ids_field: nil, owned: true, table_name: nil, back_field: nil, link_field: nil, index: false
+    # Defines a new many-to-many field
+    # @param [Symbol] name
+    # @param [Class] item_type
+    # @return [void]
+    # @!macro [attach] links
+    #   @api public
+    #   @!attribute [rw]
+    #   @return [Array<$2>] the +$1+ field
+    def links name, item_type: nil, ids_field: nil, owned: true, table_name: nil, back_field: nil, link_field: nil, index: false
       raise TypeError, "Field name must be a Symbol!", caller            unless Symbol === name
       raise TypeError, "Item type must be an Entity subclass!", caller   unless Class === item_type && INat::Entity > item_type
       raise TypeError, "Argument 'ids_field' must be a Symbol!", caller  unless Symbol === ids_field || ids_field == nil
@@ -472,7 +493,15 @@ class INat::Data::Model
       @fields[name].implement
     end
 
-    private def backs name, item_type: nil, ids_field: nil, owned: true, back_field: nil
+    # Defines a new one-to-many field
+    # @param [Symbol] name
+    # @param [Class] item_type
+    # @return [void]
+    # @!macro [attach] backs
+    #   @api public
+    #   @!attribute [rw]
+    #   @return [Array<$2>] the +$1+ field
+    def backs name, item_type: nil, ids_field: nil, owned: true, back_field: nil
       raise TypeError, "Field name must be a Symbol!", caller            unless Symbol === name
       raise TypeError, "Item type must be an Entity subclass!", caller   unless Class === item_type && INat::Entity > item_type
       raise TypeError, "Argument 'ids_field' must be a Symbol!", caller  unless Symbol === ids_field || ids_field == nil
@@ -483,7 +512,15 @@ class INat::Data::Model
       @fields[name].implement
     end
 
-    private def block name, type: nil, &block
+    # Defines a new write-only field
+    # @param [Symbol] name
+    # @param [Class] type
+    # @return [void]
+    # @!macro [attach] block
+    #   @api public
+    #   @!attribute [w]
+    #   @return [$2] the +$1+ field
+    def block name, type: nil, &block
       raise TypeError, "Field name must be a Symbol!", caller unless Symbol === name
       raise TypeError, "Field type must be a Module!", caller unless Module === type
       raise ArgumentError, "Block is required!", caller          unless block_given?

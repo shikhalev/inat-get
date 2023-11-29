@@ -1,1 +1,6 @@
+--no-private
+--title "INat::Get"
+--hide-void-return
+--private
+--asset docs/ doc/docs/
 lib/**/*.rb

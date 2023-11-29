@@ -16,6 +16,8 @@ require_relative 'types/extras'
 
 class INat::Query
 
+  using INat::Types::Std
+
   include INat
   include INat::App
   include INat::App::Logger::DSL

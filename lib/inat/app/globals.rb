@@ -46,6 +46,7 @@ module INat::App::Logger::DSL
 
   include INat::App::Config
 
+  # @private
   def included mod
     mod.extend LogDSL
   end
