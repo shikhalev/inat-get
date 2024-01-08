@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Client for iNaturalist API."
   # spec.description = "TODO: Write a longer description or delete this line."
   spec.homepage = INat::App::Info::HOMEPAGE
-  spec.license = "GPL-3.0"
+  spec.license = "GPL-3.0-or-later"
   spec.required_ruby_version = ">= 3.1.0"
 
   spec.metadata["homepage_uri"] = spec.homepage

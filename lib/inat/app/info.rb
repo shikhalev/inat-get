@@ -9,7 +9,7 @@ module INat
       AUTHOR = "Ivan Shikhalev"
       EMAIL = "shkikhalev@gmail.com"
 
-      VERSION = "0.8.0.12"
+      VERSION = "0.8.0.13"
       HOMEPAGE = "https://github.com/shikhalev/inat-get"
       SOURCE_URL = "https://github.com/shikhalev/inat-get"
 

@@ -47,7 +47,7 @@ module INat::Report::DSL
       @@prefix ||= 0
       @@prefix += 1
       users = table do
-        column '#', width: 3, align: :right, data: :line_no
+        column '#', width: 3, align: :right, data: :line_no, marker: true
         column 'Наблюдатель', data: :user
         column 'Виды', width: 6, align: :right, data: :species
         column 'Наблюдения', width: 6, align: :right, data: :observations
@@ -65,7 +65,7 @@ module INat::Report::DSL
     list.each do |ds|
       observations = if details
         if observers
-          ds.observations.map { |o| "#{ o }<sup><a href=\"\##{ @@prefix }-user-#{ o.user.id }\">#{ user_rows.index { |row| row[:user] == o.user } }</a></sup>" }
+          ds.observations.map { |o| "#{ o }<sup><a href=\"\##{ @@prefix }-user-#{ o.user.id }\">#{ user_rows.index { |row| row[:user] == o.user } + 1 }</a></sup>" }
         else
           ds.observations.map(&:to_s)
         end
