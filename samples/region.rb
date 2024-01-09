@@ -1376,6 +1376,9 @@ class Special < Area
 
   include INat::App::Logger::DSL
 
+  Project = INat::Entity::Project
+  Place   = INat::Entity::Place
+
   def initialize slug, finish, top_count: 10, top_limit: 10
     super(top_count, top_limit)
     data = SPECIALS[slug]
