@@ -67,7 +67,11 @@ module INat::Report::DSL
         if observers
           ds.observations.map { |o| "#{ o }<sup><a href=\"\##{ @@prefix }-user-#{ o.user.id }\">#{ user_rows.index { |row| row[:user] == o.user } + 1 }</a></sup>" }
         else
-          ds.observations.map(&:to_s)
+          if ds.count > 10
+            [ 'Более 10 наблюдений' ]
+          else
+            ds.observations.map(&:to_s)
+          end
         end
       else
         [ ds.count.to_s ]

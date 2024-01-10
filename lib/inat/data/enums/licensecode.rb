@@ -13,7 +13,8 @@ class INat::Data::Types::LicenseCode < Enum
         :'cc-by-sa',
         :'cc-by-nc-nd',
         :'cc-by-nc-sa',
-        :'pd'
+        :'pd',
+        :'gfdl'
 
   freeze
 end
