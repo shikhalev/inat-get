@@ -1,21 +1,23 @@
 # frozen_string_literal: true
 
-require_relative 'lib/inat/app/info'
+require_relative 'lib/ing/info'
+
+INFO = ING::Info
 
 Gem::Specification.new do |spec|
   spec.name = "inat-get"
-  spec.version = INat::App::Info::VERSION
-  spec.authors = [ INat::App::Info::AUTHOR ]
-  spec.email = [ INat::App::Info::EMAIL ]
+  spec.version =   INFO::VERSION
+  spec.authors = [ INFO::AUTHOR  ]
+  spec.email   = [ INFO::EMAIL   ]
 
   spec.summary = "Client for iNaturalist API."
   # spec.description = "TODO: Write a longer description or delete this line."
-  spec.homepage = INat::App::Info::HOMEPAGE
+  spec.homepage = INFO::HOMEPAGE
   spec.license = "GPL-3.0-or-later"
   spec.required_ruby_version = ">= 3.1.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = INat::App::Info::SOURCE_URL
+#  spec.metadata["source_code_uri"] = INFO::SOURCE_URL
 
   spec.files = Dir.chdir(__dir__) do
     `git ls-files -z`.split("\x0").reject do |f|
