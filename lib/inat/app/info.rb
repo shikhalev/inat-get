@@ -1,15 +1,12 @@
 # frozen_string_literal: true
 
 module INat
-
   module App
-
     module Info
-
       AUTHOR = "Ivan Shikhalev"
       EMAIL = "shkikhalev@gmail.com"
 
-      VERSION = "0.8.0.14"
+      VERSION = "0.8.0.15"
       HOMEPAGE = "https://github.com/shikhalev/inat-get"
       SOURCE_URL = "https://github.com/shikhalev/inat-get"
 
