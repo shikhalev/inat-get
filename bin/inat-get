@@ -1,1 +1,5 @@
 #!/usr/bin/ruby -w
+
+require 'inat-get'
+
+puts ING::DBO::DDL.DDL

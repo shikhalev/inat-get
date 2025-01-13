@@ -1,9 +1,10 @@
 
-module ING; end
+require_relative './mod'
 
 module ING::Info
 
-  VERSION = '0.8.2.0'
+  VER = [ 0, 8, 2, 0 ]
+  VERSION = VER.join '.'
   AUTHOR = 'Ivan Shikhalev'
 
   EMAIL = "shkikhalev@gmail.com"

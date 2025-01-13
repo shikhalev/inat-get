@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'lib/ing/info'
+require_relative 'lib/inat-get/info'
 
 INFO = ING::Info
 
