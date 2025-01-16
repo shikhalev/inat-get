@@ -1,23 +1,22 @@
 # frozen_string_literal: true
 
-require_relative '../types/std'
-require_relative '../types/extras'
-require_relative '../types/location'
-require_relative '../entity'
-require_relative '../enums/projecttype'
+require_relative "../types/std"
+require_relative "../types/extras"
+require_relative "../types/location"
+require_relative "../entity"
+require_relative "../enums/projecttype"
 
 module INat::Entity
-  autoload :Observation,            'inat/data/entity/observation'
-  autoload :User,                   'inat/data/entity/user'
-  autoload :Place,                  'inat/data/entity/place'
-  autoload :ProjectAdmin,           'inat/data/entity/projectadmin'
-  autoload :ProjectObservationRule, 'inat/data/entity/projectobservationrule'
-  autoload :Flag,                   'inat/data/entity/flag'
-  autoload :Taxon,                  'inat/data/entity/taxon'
+  autoload :Observation, "inat/data/entity/observation"
+  autoload :User, "inat/data/entity/user"
+  autoload :Place, "inat/data/entity/place"
+  autoload :ProjectAdmin, "inat/data/entity/projectadmin"
+  autoload :ProjectObservationRule, "inat/data/entity/projectobservationrule"
+  autoload :Flag, "inat/data/entity/flag"
+  autoload :Taxon, "inat/data/entity/taxon"
 end
 
 class INat::Entity::Project < INat::Data::Entity
-
   include INat::Data::Types
   include INat::Entity
 
@@ -90,11 +89,11 @@ class INat::Entity::Project < INat::Data::Entity
   ignore :terms
   ignore :search_parameters
   ignore :rule_preferences
+  ignore :is_new_style_project
 
   # @!endgroup
 
   def to_s
-    "<a href=\"https://www.inaturalist.org/projects/#{ id }\"><i class=\"fa fa-briefcase\"></i>  #{ title }</a>"
+    "<a href=\"https://www.inaturalist.org/projects/#{id}\"><i class=\"fa fa-briefcase\"></i>  #{title}</a>"
   end
-
 end

@@ -9,6 +9,4 @@
 *.gem
 *.htm
 *.log
-./old/
-./old/*
 old/

@@ -1291,6 +1291,9 @@ end
 
 class Zone < Area
 
+  Project = INat::Entity::Project
+  Place   = INat::Entity::Place
+
   def initialize slug, finish, top_count: 10, top_limit: 10
     super(top_count, top_limit)
     @slug = slug
@@ -1462,11 +1465,13 @@ class Special < Area
     lister = lambda do |o|
       if o.obscured
         nil
+      elsif o.positional_accuracy == nil
+        nil
       elsif o.positional_accuracy >= 10000
         4
       elsif o.positional_accuracy >= 1000
         3
-      elsif o.positional_accuracy >= 100
+      elsif o.positional_accuracy >= 500
         2
       elsif o.positional_accuracy >= 10
         nil
@@ -1477,7 +1482,7 @@ class Special < Area
     subs = [
       'Меньше 10 м',
       '10–100 м',
-      '100 м – 1 км',
+      '500 м – 1 км',
       '1–10 км',
       'Больше 10 км'
     ]

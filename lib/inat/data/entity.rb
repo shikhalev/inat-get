@@ -123,6 +123,12 @@ class INat::Data::Entity < INat::Data::Model
       data.map { |obj| parse obj }
     end
 
+    def query **params
+      return [] if @api_path.nil?
+      data = INat::API.query @api_path, **params
+      data.map { |obj| parse obj }
+    end
+
     def load_file filename
       data = API.load_file filename
       data.map { |obj| parse obj }

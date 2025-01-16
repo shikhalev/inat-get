@@ -23,4 +23,6 @@ class INat::Entity::Flag < INat::Data::Entity
   field :resolver, type: User, index: true
   field :comment, type: String
 
+  ignore :flaggable_id
+
 end

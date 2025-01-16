@@ -23,6 +23,8 @@ class INat::Query
   include INat::App::Logger::DSL
   include INat::Data::Types
 
+  Place = INat::Entity::Place
+
   private def parse_accuracy value
     case value
     when true, false
