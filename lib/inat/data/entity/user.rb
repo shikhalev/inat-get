@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 
-require_relative '../types/std'
-require_relative '../types/extras'
-require_relative '../entity'
+require_relative "../types/std"
+require_relative "../types/extras"
+require_relative "../entity"
 
 module INat::Entity
-  autoload :Observation, 'inat/data/entity/observation'
+  autoload :Observation, "inat/data/entity/observation"
 end
 
 class INat::Entity::User < INat::Data::Entity
-
   include INat::Entity
 
   api_path :users
@@ -39,12 +38,13 @@ class INat::Entity::User < INat::Data::Entity
 
   ignore :roles                   # TODO: разобраться
   ignore :preferences
+  ignore :annotated_observations_count
 
   def sort_key
     login
   end
 
-  def self.by_login login
+  def self.by_login(login)
     @entities ||= {}
     results = @entities.values.select { |e| e.login == login.to_s }
     if results.empty?
@@ -52,8 +52,8 @@ class INat::Entity::User < INat::Data::Entity
       results = from_db_rows data
     end
     if results.empty?
-      data = INat::API.query 'users/autocomplete', first_only: true, q: login
-      results = data.select { |u| u['login'] == login.to_s }.map { |d| parse(d) }
+      data = INat::API.query "users/autocomplete", first_only: true, q: login
+      results = data.select { |u| u["login"] == login.to_s }.map { |d| parse(d) }
     end
     if results.empty?
       nil
@@ -63,9 +63,8 @@ class INat::Entity::User < INat::Data::Entity
   end
 
   def to_s
-    title = ''
-    title = " title=\"#{ name }\"" if name
-    "<a#{ title } href=\"https://www.inaturalist.org/people/#{ id }\"><i class=\"glyphicon glyphicon-user\"></i></a> @#{ login }"
+    title = ""
+    title = " title=\"#{name}\"" if name
+    "<a#{title} href=\"https://www.inaturalist.org/people/#{id}\"><i class=\"glyphicon glyphicon-user\"></i></a> @#{login}"
   end
-
 end
