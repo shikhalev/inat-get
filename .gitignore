@@ -10,3 +10,4 @@
 *.htm
 *.log
 old/
+.vscode/
