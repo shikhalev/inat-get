@@ -149,7 +149,8 @@ class INat::Data::Entity < INat::Data::Model
         src.each do |key, value|
           key = key.intern if String === key
           field = fields[key] || fields.values.find { |f| f.id_field == key }
-          raise ArgumentError, "Field not found in #{ self.name }: '#{ key }'!", caller unless field
+          # raise ArgumentError, "Field not found in #{ self.name }: '#{ key }'!", caller unless field
+          next unless field
           if field.write?
             unless (field.type === value) || (field.id_field == key && Integer === value)
               if field.id_field == key

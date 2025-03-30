@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+module INat
+  module Report
+  end
+end
+
 class INat::Report::Table
 
   attr_reader :columns

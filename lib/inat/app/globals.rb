@@ -1,5 +1,13 @@
 # frozen_string_literal: true
 
+require_relative 'logging'
+require_relative 'config'
+
+module INat
+  module App
+  end
+end
+
 module INat::App::Globals
 
   class << self

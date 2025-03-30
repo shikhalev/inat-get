@@ -2,6 +2,11 @@
 
 require 'logger'
 
+module INat
+  module App
+  end
+end
+
 class INat::App::Logger
 
   def config

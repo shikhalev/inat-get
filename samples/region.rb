@@ -1,4 +1,4 @@
-
+require 'inat/app/task/dsl'
 require 'inat/report/report_dsl'
 
 DISTRICTS = {
